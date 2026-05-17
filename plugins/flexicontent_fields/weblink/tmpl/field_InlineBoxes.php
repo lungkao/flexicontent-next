@@ -57,8 +57,9 @@
 
 			$autoprefix = '
 			<div class="' . $box_classes . ' fc-lbl-external-box">
-				<label class="' . $lbl_classes . $has_value_class . ' fc-lbl-external fc-lbl '.$tooltip_class.'" title="'.$_tip_title.'">'.\Joomla\CMS\Language\Text::_( 'FLEXI_FIELD_WEBLINK_IS_RELATIVE' ).'</label>
+				<label class="' . $lbl_classes . $has_value_class . ' fc-lbl-external fc-lbl '.$tooltip_class.'" title="'.$_tip_title.'" aria-hidden="true">'.\Joomla\CMS\Language\Text::_( 'FLEXI_FIELD_WEBLINK_IS_RELATIVE' ).'</label>
 				<fieldset class="radio btn-group group-fcinfo">
+					<legend class="visually-hidden">'.\Joomla\CMS\Language\Text::_( 'FLEXI_FIELD_WEBLINK_IS_RELATIVE' ).'</legend>
 					<input ' . $ff_events . ' class="autoprefix" id="'.$elementid_n.'_autoprefix_0" name="'.$fieldname_n.'[autoprefix]" type="radio" value="0" '.( !$is_absolute ? 'checked="checked"' : '' ).'/>
 					<label class="' . $lbl_classes . ' btn" style="min-width: 48px;" for="'.$elementid_n.'_autoprefix_0">'.\Joomla\CMS\Language\Text::_('FLEXI_YES').'</label>
 					<input ' . $ff_events . ' class="autoprefix" id="'.$elementid_n.'_autoprefix_1" name="'.$fieldname_n.'[autoprefix]" type="radio" value="1" '.( $is_absolute ? 'checked="checked"' : '' ).'/>

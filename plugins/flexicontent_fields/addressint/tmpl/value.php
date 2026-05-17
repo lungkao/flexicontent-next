@@ -205,7 +205,7 @@ foreach ($this->values as $n => $value)
 
 	if ($addr_display_mode === 'plaintext' && !empty($value['addr_display']))
 	{
-		$addr = '<div class="address">' . nl2br(htmlspecialchars($value['addr_display'], ENT_COMPAT, 'UTF-8')) . '</div>';
+		$addr = '<address class="address">' . nl2br(htmlspecialchars($value['addr_display'], ENT_COMPAT, 'UTF-8')) . '</address>';
 	}
 
 	// prefer addr_display if available
@@ -253,7 +253,7 @@ foreach ($this->values as $n => $value)
 			$addr = str_replace('{{'.$match.'}}', ($match === 'country' ? (!empty($value['country']) ? \Joomla\CMS\Language\Text::_('PLG_FC_ADDRESSINT_CC_'.$value['country']) : '') : $prop_val), $addr);
 		}
 
-		$addr = '<div class="address">' . $addr . '</div>';
+		$addr = '<address class="address">' . $addr . '</address>';
 	}
 
 	// generate link to google maps directions
@@ -277,7 +277,7 @@ foreach ($this->values as $n => $value)
 	}
 
 	// generate map directions link html
-	$map_directions = '<div class="directions"><a href="' . htmlspecialchars($map_link, ENT_COMPAT, 'UTF-8') . '" target="_blank">' . htmlspecialchars($directions_link_label, ENT_COMPAT, 'UTF-8') . '</a></div>';
+	$map_directions = '<div class="directions"><a href="' . htmlspecialchars($map_link, ENT_COMPAT, 'UTF-8') . '" target="_blank" rel="noopener noreferrer">' . htmlspecialchars($directions_link_label, ENT_COMPAT, 'UTF-8') . ' <span class="visually-hidden">(' . htmlspecialchars(\Joomla\CMS\Language\Text::_('FLEXI_FIELD_FIELD_NEW_WINDOW'), ENT_COMPAT, 'UTF-8') . ')</span></a></div>';
 
 	// generate map (only if lat and lon available)
 	$map = '';
@@ -330,7 +330,7 @@ foreach ($this->values as $n => $value)
 					<div class="map">
 						<div class="image">
 							' . ($link_map === 1 ? '<a href="'.$map_link.'" target="_blank">' : '') . '
-							<img src="'.$imageMap_URL.'" '.($map_width || $map_height  ?  'style="min-width:'.$map_width.'px; min-height:'.$map_height.'px;"' : '').' alt="Map" />
+							<img src="'.$imageMap_URL.'" '.($map_width || $map_height  ?  'style="min-width:'.$map_width.'px; min-height:'.$map_height.'px;"' : '').' alt="" />
 							' . ($link_map === 1 ? '</a>' : '') . '
 						</div>
 					</div>';

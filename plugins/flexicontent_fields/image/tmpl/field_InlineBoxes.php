@@ -339,7 +339,7 @@ foreach ($field->value as $index => $value)
 	if ($linkto_url) $urllink =
 		'<div>
 			<!--label class="fc-prop-lbl">'.Text::_( 'FLEXI_FIELD_LINKTO_URL' ).'</label-->
-			<input class="imgurllink" size="40" name="'.$fieldname_n.'[urllink]" value="'.htmlspecialchars(isset($value['urllink']) ? $value['urllink'] : '', ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_LINKTO_URL' ), ENT_COMPAT, 'UTF-8').'"/>
+			<input class="imgurllink" size="40" name="'.$fieldname_n.'[urllink]" value="'.htmlspecialchars(isset($value['urllink']) ? $value['urllink'] : '', ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_LINKTO_URL' ), ENT_COMPAT, 'UTF-8').'" aria-label="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_LINKTO_URL' ), ENT_COMPAT, 'UTF-8').'"/>
 		</div>';
 	if ($usemediaurl)
 	{
@@ -350,7 +350,7 @@ foreach ($field->value as $index => $value)
 		$mediaurl =
 			'<div>
 				<div class="fcfield-image-mediaurl-box" ' . (empty($value['mediaurl']) ? ' style="display: none;" ' : '') . '>
-					<input class="img_mediaurl" size="40" name="'.$fieldname_n.'[mediaurl]" id="'.$elementid_n.'_mediaurl" value="'.htmlspecialchars(isset($value['mediaurl']) ? $value['mediaurl'] : $default_mediaurl, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'. $placeholder .'"/>
+					<input class="img_mediaurl" size="40" name="'.$fieldname_n.'[mediaurl]" id="'.$elementid_n.'_mediaurl" value="'.htmlspecialchars(isset($value['mediaurl']) ? $value['mediaurl'] : $default_mediaurl, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'. $placeholder .'" aria-label="'. $placeholder .'"/>
 					<br>
 					<div class="' . $input_grp_class . ' fcfield-image-mediaurl-btns">
 						<a href="javascript:;" class="'. $tooltip_class .' btn btn-primary btn-small img_fetch_btn" title="'.Text::_('FLEXI_FETCH').'" onclick="fcfield_image.fetchData(\''.$elementid_n.'\', \''.$field_name_js.'\'); return false;">
@@ -368,27 +368,27 @@ foreach ($field->value as $index => $value)
 	if ($usealt) $alt =
 		'<div>
 			<!--label class="fc-prop-lbl">'.Text::_( 'FLEXI_FIELD_ALT' ).'</label-->
-			<input class="imgalt" size="40" name="'.$fieldname_n.'[alt]" value="'.htmlspecialchars(isset($value['alt']) ? $value['alt'] : $default_alt, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_ALT' ), ENT_COMPAT, 'UTF-8').'"/>
+			<input class="imgalt" size="40" name="'.$fieldname_n.'[alt]" value="'.htmlspecialchars(isset($value['alt']) ? $value['alt'] : $default_alt, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_ALT' ), ENT_COMPAT, 'UTF-8').'" aria-label="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_ALT' ), ENT_COMPAT, 'UTF-8').'"/>
 		</div>';
 	if ($usetitle) $title =
 		'<div>
 			<!--label class="fc-prop-lbl">'.Text::_( 'FLEXI_FIELD_TITLE' ).' <br/>('.Text::_('FLEXI_FIELD_TOOLTIP').')</label-->
-			<input class="imgtitle" size="40" name="'.$fieldname_n.'[title]" value="'.htmlspecialchars(isset($value['title']) ? $value['title'] : $default_title, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_TITLE' ), ENT_COMPAT, 'UTF-8').'"/>
+			<input class="imgtitle" size="40" name="'.$fieldname_n.'[title]" value="'.htmlspecialchars(isset($value['title']) ? $value['title'] : $default_title, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_TITLE' ), ENT_COMPAT, 'UTF-8').'" aria-label="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_TITLE' ), ENT_COMPAT, 'UTF-8').'"/>
 		</div>';
 	if ($usedesc) $desc =
 		'<div>
 			<!--label class="fc-prop-lbl">'.Text::_( 'FLEXI_FIELD_DESC' ).' <br/>('.Text::_('FLEXI_FIELD_TOOLTIP').')</label-->
-			<textarea class="imgdesc" name="'.$fieldname_n.'[desc]" rows="3" cols="24" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_DESC' ), ENT_COMPAT, 'UTF-8').'">'.(isset($value['desc']) ? $value['desc'] : $default_desc).'</textarea>
+			<textarea class="imgdesc" name="'.$fieldname_n.'[desc]" rows="3" cols="24" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_DESC' ), ENT_COMPAT, 'UTF-8').'" aria-label="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_DESC' ), ENT_COMPAT, 'UTF-8').'">'.(isset($value['desc']) ? $value['desc'] : $default_desc).'</textarea>
 		</div>';
 	if ($usecust1) $cust1 =
 		'<div>
 			<!--label class="fc-prop-lbl">'.Text::_( 'FLEXI_FIELD_IMG_CUST1' ).'</label-->
-			<input class="imgcust1" size="40" name="'.$fieldname_n.'[cust1]" value="'.htmlspecialchars(isset($value['cust1']) ? $value['cust1'] : $default_cust1, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_IMG_CUST1' ), ENT_COMPAT, 'UTF-8').'"/>
+			<input class="imgcust1" size="40" name="'.$fieldname_n.'[cust1]" value="'.htmlspecialchars(isset($value['cust1']) ? $value['cust1'] : $default_cust1, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_IMG_CUST1' ), ENT_COMPAT, 'UTF-8').'" aria-label="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_IMG_CUST1' ), ENT_COMPAT, 'UTF-8').'"/>
 		</div>';
 	if ($usecust2) $cust2 =
 		'<div>
 			<!--label class="fc-prop-lbl">'.Text::_( 'FLEXI_FIELD_IMG_CUST2' ).'</label-->
-			<input class="imgcust2" size="40" name="'.$fieldname_n.'[cust2]" value="'.htmlspecialchars(isset($value['cust2']) ? $value['cust2'] : $default_cust2, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_IMG_CUST2' ), ENT_COMPAT, 'UTF-8').'"/>
+			<input class="imgcust2" size="40" name="'.$fieldname_n.'[cust2]" value="'.htmlspecialchars(isset($value['cust2']) ? $value['cust2'] : $default_cust2, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_IMG_CUST2' ), ENT_COMPAT, 'UTF-8').'" aria-label="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_IMG_CUST2' ), ENT_COMPAT, 'UTF-8').'"/>
 		</div>';
 
 	// DB-mode needs a 'pick_existing_n'

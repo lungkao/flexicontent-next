@@ -420,7 +420,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 				}
 			}
 			if (!isset($value['embed_url'])) $value['embed_url'] = '';
-			$embed_html = '<iframe class="sharedmedia seamless" src="'.($value['embed_url'] ? $value['embed_url'] : 'about:blank').'" style="width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden;" allowFullScreen></iframe>';
+			$embed_html = '<iframe class="sharedmedia seamless" src="'.($value['embed_url'] ? $value['embed_url'] : 'about:blank').'" title="'.htmlspecialchars($value['title'] ?: \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA'), ENT_COMPAT, 'UTF-8').'" style="width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden;" allowFullScreen></iframe>';
 
 			if (!isset($value['url']))         $value['url'] = '';
 			if (!isset($value['embed_url']))   $value['embed_url'] = '';
@@ -449,7 +449,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 				').'
 			<div class="fcclear"></div>
 			<div class="fcfield_field_data_box">
-			<table class="fc-form-tbl fcfullwidth fcinner fc-sharedmedia-field-tbl" data-row="'.$n.'">
+			<table role="presentation" class="fc-form-tbl fcfullwidth fcinner fc-sharedmedia-field-tbl" data-row="'.$n.'">
 			<tbody>
 
 				<tr>

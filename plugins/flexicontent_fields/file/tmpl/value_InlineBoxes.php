@@ -375,7 +375,8 @@ else if ($prop !== 'display_properties_only') :
 					class="' . $file_classes . ' btn-success fcfile_downloadFile ' . $analytics_classes . '" title="'.htmlspecialchars($downloadsinfo, ENT_COMPAT, 'UTF-8').'"
 				>
 					' . ($compact_display != 2 ? htmlspecialchars($downloadstext, ENT_COMPAT, 'UTF-8') : '') . '
-					' . ($compact_display == 2 ? ' <span class="icon-download"></span>' : '') . '
+					' . ($compact_display == 2 ? ' <span class="icon-download" aria-hidden="true"></span>' : '') . '
+					' . ($non_file_url ? ' <span class="visually-hidden">(' . htmlspecialchars(\Joomla\CMS\Language\Text::_('FLEXI_FIELD_FIELD_NEW_WINDOW'), ENT_COMPAT, 'UTF-8') . ')</span>' : '') . '
 				</button>';
 			// Add it now, optionally this can be commented out to add it a custom place
 			$actions_arr[] = $_download_btn_html;
@@ -468,8 +469,9 @@ else if ($prop !== 'display_properties_only') :
 			// The download link, if filename/title not shown, then display a 'download' prompt text
 			$actions_arr[] =
 				($filename_shown && $link_filename ? $icon.' ' : '')
-				.'<a href="' . htmlspecialchars($dl_link, ENT_COMPAT, 'UTF-8') . '" class="' . $file_classes . ' fcfile_downloadFile ' . $analytics_classes . '" title="' . htmlspecialchars($downloadsinfo, ENT_COMPAT, 'UTF-8') . '" ' . ($non_file_url ? 'target="_blank"' : '') . '>'
+				.'<a href="' . htmlspecialchars($dl_link, ENT_COMPAT, 'UTF-8') . '" class="' . $file_classes . ' fcfile_downloadFile ' . $analytics_classes . '" title="' . htmlspecialchars($downloadsinfo, ENT_COMPAT, 'UTF-8') . '" ' . ($non_file_url ? 'target="_blank" rel="noopener noreferrer"' : '') . '>'
 				.($filename_shown && $link_filename ? $name_str : htmlspecialchars($downloadstext, ENT_COMPAT, 'UTF-8'))
+				.($non_file_url ? ' <span class="visually-hidden">(' . htmlspecialchars(\Joomla\CMS\Language\Text::_('FLEXI_FIELD_FIELD_NEW_WINDOW'), ENT_COMPAT, 'UTF-8') . ')</span>' : '')
 				.'</a>';
 		}
 
@@ -477,11 +479,12 @@ else if ($prop !== 'display_properties_only') :
 		{
 			$_view_link_esc = htmlspecialchars($dl_link . (strpos($dl_link, '?') !== false ? '&amp;' : '?') . 'method=view', ENT_COMPAT, 'UTF-8');
 			$actions_arr[] = '
-				<a href="' . $_view_link_esc . '" ' . ($viewinside==2 ? 'target="_blank"' : '')
+				<a href="' . $_view_link_esc . '" ' . ($viewinside==2 ? 'target="_blank" rel="noopener noreferrer"' : '')
 					. ' class="' . ($viewinside==0 ? 'fancybox ' : '') . $file_classes . ' fcfile_viewFile" '.($viewinside==0 ? 'data-type="iframe" ' : '')
 					. ($viewinside==1 ? ' onclick="var url = jQuery(this).attr(\'href\');  fc_showDialog(url, \'fc_modal_popup_container\', 0, 0, 0, 0, {title:\''. $filetitle_escaped .'\'}); return false;" ' : '')
 					. ' title="' . $viewinfo . '" >
 					' . htmlspecialchars($viewtext, ENT_COMPAT, 'UTF-8') . '
+					' . ($viewinside==2 ? '<span class="visually-hidden">(' . htmlspecialchars(\Joomla\CMS\Language\Text::_('FLEXI_FIELD_FIELD_NEW_WINDOW'), ENT_COMPAT, 'UTF-8') . ')</span>' : '') . '
 				</a>';
 			$fancybox_needed = $viewinside == 0;
 		}

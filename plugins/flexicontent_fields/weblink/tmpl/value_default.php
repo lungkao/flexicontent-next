@@ -139,6 +139,7 @@ foreach ($values as $value)
 	$html = '<a href="' . htmlspecialchars($href, ENT_COMPAT, 'UTF-8') . '" ' . $link_params . ' itemprop="url">'
 		. ($img_tag && $display_image == 2 ? '' : htmlspecialchars($linktext, ENT_COMPAT, 'UTF-8'))
 		. $img_tag
+		. ($target === '_blank' ? ' <span class="visually-hidden">(' . htmlspecialchars(\Joomla\CMS\Language\Text::_('FLEXI_FIELD_FIELD_NEW_WINDOW'), ENT_COMPAT, 'UTF-8') . ')</span>' : '')
 	. '</a>';
 
 	// HITS: either as icon or as inline text or both

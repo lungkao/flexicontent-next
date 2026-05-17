@@ -79,12 +79,12 @@ foreach ($values as $value)
 			<div id="'.$elementid_n.'_messages" class="alert alert-warning fc-iblock addrint_messages" style="display:none;"></div>
 		</div>
 
-		<table class="fc-form-tbl fcfullwidth fcinner fc-addressint-field-tbl"><tbody>
+		<table role="presentation" class="fc-form-tbl fcfullwidth fcinner fc-addressint-field-tbl"><tbody>
 			<tr>
 				<td colspan="2" class="">
 					' . $message_error . '
 					<div class="'.$input_grp_class . ' fc-xpended-row">
-						<label class="' . $add_on_class . ' fc-lbl-short addrint_autocomplete-lbl" for="'.$elementid_n.'_autocomplete" style="float: none;"><span class="icon-search"></span></label>
+						<label class="' . $add_on_class . ' fc-lbl-short addrint_autocomplete-lbl" for="'.$elementid_n.'_autocomplete" style="float: none;"><span class="icon-search" aria-hidden="true"></span><span class="visually-hidden">'.\Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_ADDRESSINT_ADDRESS').'</span></label>
 						<input id="'.$elementid_n.'_autocomplete" class="addrint_autocomplete" name="'.$fieldname_n.'[autocomplete]" type="text" autocomplete="off" spellcheck="false" />
 						<select id="'.$elementid_n.'_ac_type" class="addrint_ac_type use_select2_lib" name="'.$fieldname_n.'[ac_type]" onchange="fcfield_addrint.changeAutoCompleteType(this.id.replace(\'_ac_type\', \'\'), \''.$field_name_js.'\');"' . ($mapapi_edit === 'nominatim' ? ' style="display:none;"' : '') . '>
 							'.$ac_type_options.'
@@ -177,11 +177,11 @@ foreach ($values as $value)
 		' : '') . '
 
 			<tr '.($edit_latlon ? '' : 'style="display:none;"').' class="fc_gm_latitude_row">
-				<td class="key"><label class="fc-prop-lbl addrint_lat-lbl">'.\Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_ADDRESSINT_LATITUDE').'</label></td>
+				<td class="key"><label class="fc-prop-lbl addrint_lat-lbl" for="'.$elementid_n.'_lat">'.\Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_ADDRESSINT_LATITUDE').'</label></td>
 				<td><input type="text" class="fcfield_textval addrint_lat ' . (in_array('latitude', $required_props) ? ' required' : '') . $disabled_class . '" ' . $disabled_attr . ' id="'.$elementid_n.'_lat" name="'.$fieldname_n.'[lat]" value="'.htmlspecialchars($value['lat'], ENT_COMPAT, 'UTF-8').'" size="50" maxlength="10" ' . (!$edit_latlon || $edit_latlon == 2 ? ' readonly="readonly" ' : '') . '/></td>
 			</tr>
 			<tr class="fc_gm_longitude_row">
-				<td class="key"><label class="fc-prop-lbl addrint_lon-lbl">'.\Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_ADDRESSINT_LONGITUDE').'</label></td>
+				<td class="key"><label class="fc-prop-lbl addrint_lon-lbl" for="'.$elementid_n.'_lon">'.\Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_ADDRESSINT_LONGITUDE').'</label></td>
 				<td><input type="text" class="fcfield_textval addrint_lon ' . (in_array('longitude', $required_props) ? ' required' : '') . $disabled_class . '" ' . $disabled_attr . ' id="'.$elementid_n.'_lon" name="'.$fieldname_n.'[lon]" value="'.htmlspecialchars($value['lon'], ENT_COMPAT, 'UTF-8').'" size="50" maxlength="10" ' . (!$edit_latlon || $edit_latlon == 2 ? ' readonly="readonly" ' : '') . '/></td>
 			</tr>' .
 

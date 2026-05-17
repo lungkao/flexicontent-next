@@ -114,6 +114,7 @@ foreach ($values as $value)
 			<iframe id="' . $player_id . '"
 				class="fc_sharedmedia_player_frame seamless"
 				src="' . $player_url . '"
+				title="' . htmlspecialchars($value['title'] ?: \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA'), ENT_COMPAT, 'UTF-8') . '"
 				style="min-width:' . $_width . 'px; min-height:' . $_height . 'px; border: none; overflow:hidden;"
 				allowfullscreen allowtransparency allow="autoplay"
 			>
