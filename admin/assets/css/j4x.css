@@ -351,7 +351,6 @@ div table.admintable td.paramlist_key {
 	border-bottom: 1px solid #D0D0D0;
 	border-left: 1px solid #D0D0D0;
 	color: #666666;
-	font-family: arial;
 	font-weight: normal;
 	font-size: var(--fc-fs-sm, .875rem);
 	text-align: left;
@@ -626,7 +625,7 @@ table.fcmanlist tbody td.col_status div.statetoggler {
 #flexicontent .fc-xpended-btns > [class*=" fcfield-"]:not(.add-on):not(.input-group-addon):not(.btn),
 #flexicontent .fc-xpended-btns > .fcfield-button-add:not(.add-on):not(.input-group-addon) a,
 #flexicontent .buttons.btn-group > ul.dropdown-menu > li > span {
-	font-family: 'Roboto' !important;
+	font-family: inherit;
 }
 #flexicontent div div [class^="fcfield-"].fcfont-icon:before,
 #flexicontent div div [class*=" fcfield-"].fcfont-icon:before,

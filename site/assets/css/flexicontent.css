@@ -6391,50 +6391,44 @@ h2.fc_search_result_title a {
  * A11y-reviewed 2026-05-18 (accessibility-lead cleared).
  */
 
-/* Reset hardcoded font-family — inherit Joomla template stack */
-.com_flexicontent,
-.com_flexicontent input,
-.com_flexicontent select,
-.com_flexicontent textarea,
-.com_flexicontent button,
-.com_flexicontent table,
-.com_flexicontent .fc_field,
-.com_flexicontent .fcfields,
-.mod_flexicontent,
-.mod_flexifilter,
-.mod_flexiadvsearch,
-.mod_flexicategories,
-.mod_flexitagcloud,
-.mod_flexigooglemap,
+/* Reset hardcoded font-family — inherit Joomla template stack.
+ * SCOPED to FLEXI wrappers (#flexicontent / .fc_field / .fcfields) so site
+ * template chrome (header/footer/sidebar modules outside FLEXI) keeps its
+ * own font stack untouched. */
+#flexicontent,
+#flexicontent input,
+#flexicontent select,
+#flexicontent textarea,
+#flexicontent button,
+#flexicontent table,
 .fc_field,
-.fcfields {
+.fc_field input,
+.fc_field select,
+.fc_field textarea,
+.fcfields,
+.fcfields input,
+.fcfields select,
+.fcfields textarea {
 	font-family: inherit;
 }
 
 /* Bump tiny labels / hints to readable minimum (Joomla parity) */
-.com_flexicontent small,
-.com_flexicontent .small,
-.com_flexicontent .form-text,
+#flexicontent small,
+#flexicontent .small,
+#flexicontent .form-text,
 .fc_field small,
 .fc_field .small {
 	font-size: 0.875rem;
 }
 
 /* Complex-script line-height — extra vertical room for tone marks / stacked diacritics */
-html[lang^="th"] .com_flexicontent,
-html[lang^="lo"] .com_flexicontent,
-html[lang^="km"] .com_flexicontent,
-html[lang^="my"] .com_flexicontent,
-html[lang^="vi"] .com_flexicontent,
-html[lang^="hi"] .com_flexicontent,
-html[lang^="bn"] .com_flexicontent,
-html[lang^="th"] .mod_flexicontent,
-html[lang^="lo"] .mod_flexicontent,
-html[lang^="km"] .mod_flexicontent,
-html[lang^="my"] .mod_flexicontent,
-html[lang^="vi"] .mod_flexicontent,
-html[lang^="hi"] .mod_flexicontent,
-html[lang^="bn"] .mod_flexicontent,
+html[lang^="th"] #flexicontent,
+html[lang^="lo"] #flexicontent,
+html[lang^="km"] #flexicontent,
+html[lang^="my"] #flexicontent,
+html[lang^="vi"] #flexicontent,
+html[lang^="hi"] #flexicontent,
+html[lang^="bn"] #flexicontent,
 html[lang^="th"] .fc_field,
 html[lang^="lo"] .fc_field,
 html[lang^="km"] .fc_field,
@@ -6446,8 +6440,8 @@ html[lang^="bn"] .fc_field {
 }
 
 /* Floor weight 300 for known thin classes in Thai (tone marks break at 100/200) */
-html[lang^="th"] .com_flexicontent .fw-light,
-html[lang^="th"] .com_flexicontent .fw-lighter,
+html[lang^="th"] #flexicontent .fw-light,
+html[lang^="th"] #flexicontent .fw-lighter,
 html[lang^="th"] .fc_field .fw-light,
 html[lang^="th"] .fc_field .fw-lighter {
 	font-weight: 300;

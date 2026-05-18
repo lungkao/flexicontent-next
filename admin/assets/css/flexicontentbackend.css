@@ -6167,37 +6167,42 @@ body div .fc_assoc_isuptodate span {
  * A11y-reviewed 2026-05-18 (accessibility-lead cleared).
  */
 
-/* Reset hardcoded font-family — inherit Atum admin template stack */
-body.com_flexicontent,
-body.com_flexicontent input,
-body.com_flexicontent select,
-body.com_flexicontent textarea,
-body.com_flexicontent button,
-body.com_flexicontent table,
+/* Reset hardcoded font-family — inherit Atum admin template stack.
+ * SCOPED to FLEXI containers only (NOT body.com_flexicontent) so Atum
+ * sidebar/topbar chrome keeps its own font stack untouched. */
+#flexicontent,
+#flexicontent input,
+#flexicontent select,
+#flexicontent textarea,
+#flexicontent button,
+#flexicontent table,
 #j-main-container .fc_field,
 #j-main-container .fcfields,
 .fc_field,
-.fcfields {
+.fcfields,
+#flexicontent label.fc-prop-lbl,
+#flexicontent span.fc-prop-lbl,
+#flexicontent .fc-floated-labels-box > label.fc-floated-lbl {
 	font-family: inherit;
 }
 
 /* Bump tiny labels / hints to readable minimum (Joomla parity) */
-body.com_flexicontent small,
-body.com_flexicontent .small,
-body.com_flexicontent .form-text,
+#flexicontent small,
+#flexicontent .small,
+#flexicontent .form-text,
 #j-main-container .fc_field small,
 #j-main-container .fc_field .small {
 	font-size: 0.875rem;
 }
 
 /* Complex-script line-height — extra vertical room for tone marks / stacked diacritics */
-html[lang^="th"] body.com_flexicontent,
-html[lang^="lo"] body.com_flexicontent,
-html[lang^="km"] body.com_flexicontent,
-html[lang^="my"] body.com_flexicontent,
-html[lang^="vi"] body.com_flexicontent,
-html[lang^="hi"] body.com_flexicontent,
-html[lang^="bn"] body.com_flexicontent,
+html[lang^="th"] #flexicontent,
+html[lang^="lo"] #flexicontent,
+html[lang^="km"] #flexicontent,
+html[lang^="my"] #flexicontent,
+html[lang^="vi"] #flexicontent,
+html[lang^="hi"] #flexicontent,
+html[lang^="bn"] #flexicontent,
 html[lang^="th"] #j-main-container .fc_field,
 html[lang^="lo"] #j-main-container .fc_field,
 html[lang^="km"] #j-main-container .fc_field,
@@ -6209,9 +6214,118 @@ html[lang^="bn"] #j-main-container .fc_field {
 }
 
 /* Floor weight 300 for known thin classes in Thai (tone marks break at 100/200) */
-html[lang^="th"] body.com_flexicontent .fw-light,
-html[lang^="th"] body.com_flexicontent .fw-lighter,
+html[lang^="th"] #flexicontent .fw-light,
+html[lang^="th"] #flexicontent .fw-lighter,
 html[lang^="th"] #j-main-container .fc_field .fw-light,
 html[lang^="th"] #j-main-container .fc_field .fw-lighter {
 	font-weight: 300;
+}
+
+/* =====================================================================
+   Dashboard — update-check loading + retry + postinstall summary pill
+   ===================================================================== */
+#flexicontent .fc-update-check--loading {
+	flex-direction: row;
+	align-items: center;
+	gap: 12px;
+	padding: 16px 18px;
+	color: var(--fc-dash-text-2);
+}
+#flexicontent .fc-update-spinner {
+	flex: 0 0 auto;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	border: 2px solid var(--fc-dash-border-2);
+	border-top-color: var(--fc-dash-accent);
+	animation: fc-update-spin .9s linear infinite;
+}
+@keyframes fc-update-spin {
+	to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+	#flexicontent .fc-update-spinner { animation: none; }
+}
+#flexicontent .fc-update-retry {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 6px;
+	padding: 6px 14px;
+	border-radius: 999px;
+	background: #fff;
+	border: 1px solid var(--fc-dash-border-2);
+	color: var(--fc-dash-accent-2);
+	font-size: .8125rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color .18s ease, border-color .18s ease, color .18s ease;
+}
+#flexicontent .fc-update-retry:hover {
+	background: var(--fc-dash-accent);
+	border-color: var(--fc-dash-accent);
+	color: #fff;
+}
+#flexicontent .fc-update-retry:focus-visible {
+	outline: 0;
+	box-shadow: var(--fc-dash-ring);
+}
+@media (prefers-color-scheme: dark) {
+	#flexicontent .fc-update-retry {
+		background: var(--fc-dash-surface-2);
+		border-color: var(--fc-dash-border-2);
+	}
+}
+
+#flexicontent .fc-slide-summary {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin-left: 10px;
+	padding: 2px 10px;
+	border-radius: 999px;
+	font-size: .8125rem;
+	font-weight: 500;
+	letter-spacing: 0;
+	text-transform: none;
+}
+#flexicontent .fc-slide-summary--ok {
+	background: #f0fdf4;
+	color: #15803d;
+}
+#flexicontent .fc-slide-summary--warn {
+	background: #fffbeb;
+	color: #b45309;
+}
+@media (prefers-color-scheme: dark) {
+	#flexicontent .fc-slide-summary--ok   { background: rgba(74,222,128,.12); color: #4ade80; }
+	#flexicontent .fc-slide-summary--warn { background: rgba(251,191,36,.12); color: #fbbf24; }
+}
+
+/* =====================================================================
+   Typography parity — inherit Joomla Atum admin font stack inside FLEXI
+   wrappers only. Scoped to #flexicontent / #j-main-container .fc_field
+   / .fcfields so Atum sidebar + topbar chrome (which live outside these
+   wrappers) keep their own font-family untouched.
+   Excludes icon fonts via :not([class*="icon"]) selectors.
+   ===================================================================== */
+#flexicontent,
+#flexicontent *:not([class*="icon-"]):not([class*="fa-"]):not(.fa):not(.fas):not(.far):not(.fab):not(.icon):not(code):not(pre):not(kbd):not(samp):not(tt),
+#j-main-container .fc_field,
+#j-main-container .fc_field *:not([class*="icon-"]):not([class*="fa-"]):not(.fa):not(.fas):not(.far):not(.fab):not(.icon):not(code):not(pre):not(kbd):not(samp):not(tt),
+.fcfields,
+.fcfields *:not([class*="icon-"]):not([class*="fa-"]):not(.fa):not(.fas):not(.far):not(.fab):not(.icon):not(code):not(pre):not(kbd):not(samp):not(tt) {
+	font-family: inherit;
+}
+#flexicontent code,
+#flexicontent pre,
+#flexicontent kbd,
+#flexicontent samp,
+#flexicontent tt,
+#j-main-container .fc_field code,
+#j-main-container .fc_field pre,
+#j-main-container .fc_field kbd,
+#j-main-container .fc_field samp,
+#j-main-container .fc_field tt {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
