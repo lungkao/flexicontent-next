@@ -1228,6 +1228,30 @@ class plgSystemFlexisystem extends CMSPlugin
 				".(!$perms->CanConfig  ? 'document.querySelectorAll(\'#menu a[href="index.php?option=com_config&view=component&component=com_flexicontent"]\').forEach(function(element) { element.parentNode.remove(); });' : '')."
 			});
 		");
+
+		// Global admin label.required override — neutralize Joomla 6 Atum's
+		// red label color while keeping the asterisk red for redundancy.
+		// WCAG 1.4.1: required state still indicated by (1) native `required`
+		// attribute exposed to AT, (2) visible asterisk via ::after, (3) bold
+		// weight. Color is no longer the sole indicator. Scoped via
+		// body[class*="com_"] so this runs in every Joomla admin component.
+		Factory::getDocument()->addStyleDeclaration(<<<'CSS'
+body[class*="com_"] label.required,
+body[class*="com_"] .control-label label.required,
+body[class*="com_"] .control-label span.required,
+body[class*="com_"] .form-label.required {
+	color: inherit !important;
+	font-weight: 700 !important;
+}
+body[class*="com_"] label.required::after,
+body[class*="com_"] .form-label.required::after {
+	content: " *";
+	color: #c9302c !important;
+	font-weight: 700 !important;
+	font-size: .9em !important;
+}
+CSS
+		);
 	}
 
 
