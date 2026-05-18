@@ -323,7 +323,7 @@ class FlexicontentViewFlexicontent extends \Joomla\CMS\MVC\View\HtmlView
 					<?php
 						echo $image
 						? \Joomla\CMS\HTML\HTMLHelper::image('administrator/components/com_flexicontent/assets/images/'.$image, $text, $img_attribs)
-						: '<span class="' . $iconfont . ' fc-dashboard-icon"></span>';
+						: '<span class="' . $iconfont . ' fc-dashboard-icon" aria-hidden="true"></span>';
 					?>
 					<span class="fc-board-btn-text <?php echo $link ? '' : ' fcdisabled'; ?>"><?php echo $text; ?></span>
 				<?php if ($link) : ?></a><?php endif; ?>

@@ -184,8 +184,8 @@ $items_task = 'task=items.';
 		?>
 
 		<?php if (empty($skip_content_fieldset)): ?>
-		<fieldset class="fc-board-set">
-			<h2 class="fc-board-header"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_NAV_SD_CONTENT_EDITING' );?></h2>
+		<section class="fc-board-set" aria-labelledby="fc-board-content">
+			<h2 id="fc-board-content" class="fc-board-header"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_NAV_SD_CONTENT_EDITING' );?></h2>
 
 			<div class="fc-board-set-inner"><?php
 			if (!isset($sbtns['items']))
@@ -264,13 +264,13 @@ $items_task = 'task=items.';
 			}
 			?>
 			</div>
-		</fieldset>
+		</section>
 		<?php endif; ?>
 
 
 		<?php if (empty($skip_types_fieldset)): ?>
-		<fieldset class="fc-board-set">
-			<h2 class="fc-board-header"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_NAV_SD_TYPES_N_FIELDS' );?></h2>
+		<section class="fc-board-set" aria-labelledby="fc-board-types">
+			<h2 id="fc-board-types" class="fc-board-header"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_NAV_SD_TYPES_N_FIELDS' );?></h2>
 
 			<div class="fc-board-set-inner"><?php
 			$add_sep = false;
@@ -322,13 +322,13 @@ $items_task = 'task=items.';
 			}
 			?>
 			</div>
-		</fieldset>
+		</section>
 		<?php endif; ?>
 
 
 		<?php if (empty($skip_viewing_fieldset)): ?>
-		<fieldset class="fc-board-set">
-			<h2 class="fc-board-header"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_NAV_SD_CONTENT_VIEWING' );?></h2>
+		<section class="fc-board-set" aria-labelledby="fc-board-viewing">
+			<h2 id="fc-board-viewing" class="fc-board-header"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_NAV_SD_CONTENT_VIEWING' );?></h2>
 
 			<div class="fc-board-set-inner"><?php
 			$add_sep = false;
@@ -375,13 +375,13 @@ $items_task = 'task=items.';
 			}
 			?>
 			</div>
-		</fieldset>
+		</section>
 		<?php endif; ?>
 
 
 		<?php if (empty($skip_users_fieldset)): ?>
-		<fieldset class="fc-board-set">
-			<h2 class="fc-board-header"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_NAV_SD_USERS_N_GROUPS' );?></h2>
+		<section class="fc-board-set" aria-labelledby="fc-board-users">
+			<h2 id="fc-board-users" class="fc-board-header"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_NAV_SD_USERS_N_GROUPS' );?></h2>
 
 			<div class="fc-board-set-inner"><?php
 			if ($this->perms->CanAuthors)
@@ -408,13 +408,13 @@ $items_task = 'task=items.';
 			}
 			?>
 			</div>
-		</fieldset>
+		</section>
 		<?php endif; ?>
 
 
 		<?php if (empty($skip_expert_fieldset)): ?>
-		<fieldset class="fc-board-set">
-			<h2 class="fc-board-header"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_NAV_SD_EXPERT_USAGE' );?></h2>
+		<section class="fc-board-set" aria-labelledby="fc-board-expert">
+			<h2 id="fc-board-expert" class="fc-board-header"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_NAV_SD_EXPERT_USAGE' );?></h2>
 
 			<div class="fc-board-set-inner"><?php
 			$add_sep = false;
@@ -449,13 +449,13 @@ $items_task = 'task=items.';
 			}
 			?>
 			</div>
-		</fieldset>
+		</section>
 		<?php endif; ?>
 
 
 		<?php if ($this->params->get('support_url')): ?>
-		<fieldset class="fc-board-set">
-			<h2 class="fc-board-header"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_HELP' );?></h2>
+		<section class="fc-board-set" aria-labelledby="fc-board-help">
+			<h2 id="fc-board-help" class="fc-board-header"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_HELP' );?></h2>
 
 			<div class="fc-board-set-inner"><?php
 			$link = $this->params->get('support_url');
@@ -470,7 +470,7 @@ $items_task = 'task=items.';
 			}*/
 			?>
 			</div>
-		</fieldset>
+		</section>
 		<?php endif; ?>
 
 		<?php
@@ -496,12 +496,12 @@ $items_task = 'task=items.';
 			});
 			");
 			echo '
-			<fieldset class="fc-board-set">
-				<h2 class="fc-board-header">'.\Joomla\CMS\Language\Text::_( 'FLEXI_UPDATE_CHECK' ).'</h2>
+			<section class="fc-board-set" aria-labelledby="fc-board-updatecheck">
+				<h2 id="fc-board-updatecheck" class="fc-board-header">'.\Joomla\CMS\Language\Text::_( 'FLEXI_UPDATE_CHECK' ).'</h2>
 				<div class="fc-board-set-inner">
 					<div id="displayfversion" style="float: left;"></div>
 				</div>
-			</fieldset>
+			</section>
 			';
 		}
 		?>
@@ -809,7 +809,7 @@ $items_task = 'task=items.';
 
 			<?php ob_start(); ?>
 			<div id="fc-dash-credits">
-			<?php echo !$hide_fc_license_credits ? '<fieldset class="fc-board-set"><h2 class="fc-board-header">'.\Joomla\CMS\Language\Text::_( 'About FLEXIcontent' ).'</h2>' : ''; ?>
+			<?php echo !$hide_fc_license_credits ? '<section class="fc-board-set" aria-labelledby="fc-board-about"><h2 id="fc-board-about" class="fc-board-header">'.\Joomla\CMS\Language\Text::_( 'About FLEXIcontent' ).'</h2>' : ''; ?>
 				<div class="fc-board-set-inner">
 				<?php
 					$logo_style = ';';
@@ -859,7 +859,7 @@ $items_task = 'task=items.';
 					</span>
 
 				</div>
-			<?php echo !$hide_fc_license_credits ? '</fieldset>' : ''; ?>
+			<?php echo !$hide_fc_license_credits ? '</section>' : ''; ?>
 
 			</div>
 			<?php $fc_logo_license = ob_get_clean(); ?>
