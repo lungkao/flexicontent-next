@@ -6384,3 +6384,71 @@ h2.fc_search_result_title a {
 .mod_flexifilter_wrapper  .field-calendar .btn-primary {
 	height: calc(var(--ctrls-inp-height) + 2px) !important;
 }
+
+/* === [v6.1.0-beta] Typography parity with Joomla core ===
+ * Overrides legacy Trebuchet MS / 11-13px hardcoded sizes from Joomla 1.5 era.
+ * Improves Thai + other complex-script readability (tone-mark headroom).
+ * A11y-reviewed 2026-05-18 (accessibility-lead cleared).
+ */
+
+/* Reset hardcoded font-family — inherit Joomla template stack */
+.com_flexicontent,
+.com_flexicontent input,
+.com_flexicontent select,
+.com_flexicontent textarea,
+.com_flexicontent button,
+.com_flexicontent table,
+.com_flexicontent .fc_field,
+.com_flexicontent .fcfields,
+.mod_flexicontent,
+.mod_flexifilter,
+.mod_flexiadvsearch,
+.mod_flexicategories,
+.mod_flexitagcloud,
+.mod_flexigooglemap,
+.fc_field,
+.fcfields {
+	font-family: inherit;
+}
+
+/* Bump tiny labels / hints to readable minimum (Joomla parity) */
+.com_flexicontent small,
+.com_flexicontent .small,
+.com_flexicontent .form-text,
+.fc_field small,
+.fc_field .small {
+	font-size: 0.875rem;
+}
+
+/* Complex-script line-height — extra vertical room for tone marks / stacked diacritics */
+html[lang^="th"] .com_flexicontent,
+html[lang^="lo"] .com_flexicontent,
+html[lang^="km"] .com_flexicontent,
+html[lang^="my"] .com_flexicontent,
+html[lang^="vi"] .com_flexicontent,
+html[lang^="hi"] .com_flexicontent,
+html[lang^="bn"] .com_flexicontent,
+html[lang^="th"] .mod_flexicontent,
+html[lang^="lo"] .mod_flexicontent,
+html[lang^="km"] .mod_flexicontent,
+html[lang^="my"] .mod_flexicontent,
+html[lang^="vi"] .mod_flexicontent,
+html[lang^="hi"] .mod_flexicontent,
+html[lang^="bn"] .mod_flexicontent,
+html[lang^="th"] .fc_field,
+html[lang^="lo"] .fc_field,
+html[lang^="km"] .fc_field,
+html[lang^="my"] .fc_field,
+html[lang^="vi"] .fc_field,
+html[lang^="hi"] .fc_field,
+html[lang^="bn"] .fc_field {
+	line-height: 1.65;
+}
+
+/* Floor weight 300 for known thin classes in Thai (tone marks break at 100/200) */
+html[lang^="th"] .com_flexicontent .fw-light,
+html[lang^="th"] .com_flexicontent .fw-lighter,
+html[lang^="th"] .fc_field .fw-light,
+html[lang^="th"] .fc_field .fw-lighter {
+	font-weight: 300;
+}
