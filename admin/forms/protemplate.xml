@@ -36,7 +36,7 @@
 			type="sql"
 			label="FLEXI_CATEGORY"
 			description="FLEXI_PROTEMPLATE_CATID_DESC"
-			query="SELECT id, title FROM #__categories WHERE extension='com_flexicontent' AND published=1 ORDER BY title"
+			query="SELECT id, title FROM #__categories WHERE extension='com_content' AND published=1 ORDER BY title"
 			key_field="id"
 			value_field="title"
 			default="0"

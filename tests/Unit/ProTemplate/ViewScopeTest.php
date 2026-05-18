@@ -77,17 +77,32 @@ class ViewScopeTest extends TestCase
 		$this->assertNotEmpty($nodes, 'view_scope field must exist in protemplate.xml');
 
 		$field = $nodes[0];
-		$this->assertSame('list',                            (string) $field['type']);
-		$this->assertSame('true',                            (string) $field['required']);
-		$this->assertSame('item',                            (string) $field['default']);
-		$this->assertSame('FLEXI_PROTEMPLATE_VIEW_SCOPE',      (string) $field['label']);
-		$this->assertSame('FLEXI_PROTEMPLATE_VIEW_SCOPE_DESC', (string) $field['description']);
+		// view_scope is locked by the chooser at create-time and hidden in the
+		// builder so editors never override it. The model still validates it
+		// against the enum allowlist on save (item|category).
+		$this->assertSame('hidden', (string) $field['type']);
+		$this->assertSame('item',   (string) $field['default']);
+	}
 
-		$values = [];
-		foreach ($field->option as $opt) {
-			$values[] = (string) $opt['value'];
-		}
-		$this->assertSame(['item', 'category'], $values, 'exactly 2 enum options in stable order');
+	public function testCatidQueryFiltersOnContentExtension(): void
+	{
+		// Joomla content categories used by FlexiContent live under
+		// extension='com_content'. A previous revision filtered on
+		// 'com_flexicontent' which returns zero rows, so the Category
+		// dropdown was unselectable.
+		$xml = dirname(__DIR__, 3) . '/admin/forms/protemplate.xml';
+		$this->assertFileExists($xml);
+		$doc = simplexml_load_file($xml);
+		$this->assertNotFalse($doc);
+
+		$nodes = $doc->xpath('//field[@name="catid"]');
+		$this->assertNotEmpty($nodes, 'catid field must exist in protemplate.xml');
+
+		$query = (string) $nodes[0]['query'];
+		$this->assertStringContainsString("extension='com_content'", $query,
+			'catid query must filter on com_content (Joomla content categories)');
+		$this->assertStringNotContainsString("extension='com_flexicontent'", $query,
+			"catid query must not filter on com_flexicontent");
 	}
 
 	public function testStarterLayoutShapeIsContentDriven(): void
@@ -144,7 +159,14 @@ class ViewScopeTest extends TestCase
 			$sql,
 			'migration must add view_scope column (idempotent IF NOT EXISTS allowed)'
 		);
-		$this->assertStringContainsString("VARCHAR(16) NOT NULL DEFAULT 'item'", $sql);
+		// The migration wraps the ALTER inside a PREPARE statement, so the
+		// 'item' literal is doubled to escape the outer quotes. Accept both
+		// the direct form and the escaped-for-PREPARE form.
+		$this->assertMatchesRegularExpression(
+			"/VARCHAR\\(16\\) NOT NULL DEFAULT ''item''|VARCHAR\\(16\\) NOT NULL DEFAULT 'item'/",
+			$sql,
+			'migration must declare VARCHAR(16) NOT NULL DEFAULT item (raw or PREPARE-escaped)'
+		);
 		$this->assertMatchesRegularExpression("/UPDATE\\s+`#__flexicontent_pro_layouts`\\s+SET\\s+`view_scope`\\s*=\\s*'item'/i", $sql);
 	}
 
