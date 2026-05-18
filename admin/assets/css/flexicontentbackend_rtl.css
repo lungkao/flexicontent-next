@@ -5111,6 +5111,15 @@ div#fc-dash-credits {
 #flexicontent .fc-board-set--wide {
 	grid-column: 1 / -1;
 }
+#flexicontent .fc-board-set--wide .fc-board-set-inner {
+	display: block;
+	grid-template-columns: none;
+}
+#flexicontent .fc-board-set--wide #displayfversion {
+	width: 100%;
+	float: none !important;
+	display: block;
+}
 
 #flexicontent .fc-board-header {
 	float: none;
