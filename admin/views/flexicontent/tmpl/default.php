@@ -545,7 +545,7 @@ $items_task = 'task=items.';
 			});
 			");
 			echo '
-			<section class="fc-board-set" aria-labelledby="fc-board-updatecheck">
+			<section class="fc-board-set fc-board-set--wide" aria-labelledby="fc-board-updatecheck">
 				<h2 id="fc-board-updatecheck" class="fc-board-header">'.\Joomla\CMS\Language\Text::_( 'FLEXI_UPDATE_CHECK' ).'</h2>
 				<div class="fc-board-set-inner">
 					<div id="displayfversion" style="float: left;"></div>

@@ -5108,6 +5108,9 @@ div#fc-dash-credits {
 #flexicontent .fc-board-set:hover {
 	border-color: var(--fc-dash-border-2);
 }
+#flexicontent .fc-board-set--wide {
+	grid-column: 1 / -1;
+}
 
 #flexicontent .fc-board-header {
 	float: none;
