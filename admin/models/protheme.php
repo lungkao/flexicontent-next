@@ -75,6 +75,84 @@ class FlexicontentModelProtheme extends FCModelAdmin
 	}
 
 	/**
+	 * Create a new theme record from a preset key.
+	 *
+	 * Pulls the preset definition from PresetLibrary, encodes its theme_data
+	 * JSON and inserts a new row. Returns the new id, or 0 on failure.
+	 *
+	 * @param  string  $key    Preset key (eg 'modern-blue', 'dark-pro', or
+	 *                         'blank-theme' for an empty starting point)
+	 * @param  string  $title  Title for the new record
+	 * @return int             New record id, or 0 on failure
+	 */
+	public function createFromPreset(string $key, string $title): int
+	{
+		$title = trim($title);
+		if ($title === '') {
+			$this->setError('Title required');
+			return 0;
+		}
+
+		require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/PresetLibrary.php';
+
+		if ($key === 'blank-theme') {
+			$theme = [
+				'colors' => [
+					'accent'      => '#2563eb',
+					'surface'     => '#ffffff',
+					'surface_alt' => '#f8fafc',
+					'text'        => '#0f172a',
+					'text_muted'  => '#475569',
+					'border'      => '#cbd5e1',
+				],
+				'typography' => [
+					'family'         => 'system-ui, sans-serif',
+					'family_heading' => 'system-ui, sans-serif',
+					'scale'          => 1.0,
+					'line_height'    => 1.6,
+				],
+				'radius' => 'md',
+				'mode'   => 'light',
+			];
+		} else {
+			$preset = FlexicontentProTemplatePresetLibrary::getThemePreset($key);
+			if (!$preset) {
+				$this->setError('Unknown theme preset: ' . $key);
+				return 0;
+			}
+			$theme = $preset['theme_data'];
+		}
+
+		$json = json_encode($theme, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+		if ($json === false) {
+			$this->setError('Failed to encode preset theme');
+			return 0;
+		}
+
+		$user = Factory::getUser();
+		$db   = Factory::getDbo();
+		$now  = Factory::getDate()->toSql();
+
+		$obj = (object) [
+			'title'       => $title,
+			'theme_data'  => $json,
+			'state'       => 1,
+			'ordering'    => 0,
+			'created'     => $now,
+			'created_by'  => (int) $user->id,
+			'modified'    => $now,
+			'modified_by' => (int) $user->id,
+		];
+
+		if (!$db->insertObject('#__flexicontent_pro_themes', $obj)) {
+			$this->setError('Failed to insert theme preset record');
+			return 0;
+		}
+
+		return (int) $db->insertid();
+	}
+
+	/**
 	 * Save theme_data JSON directly (from the theme editor).
 	 *
 	 * @param  int    $id        Theme record id.

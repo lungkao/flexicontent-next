@@ -28,6 +28,7 @@
 			first_option="FLEXI_PROTEMPLATE_ALL_TYPES"
 			first_hasnt_key="true"
 			class="form-select"
+			showon="view_scope:item"
 		/>
 
 		<field
@@ -44,30 +45,22 @@
 			class="form-select"
 		/>
 
-		<field
-			name="assignment_type"
-			type="list"
-			label="FLEXI_PROTEMPLATE_ASSIGNMENT_TYPE"
-			description="FLEXI_PROTEMPLATE_ASSIGNMENT_TYPE_DESC"
-			default="global"
-			class="form-select"
-		>
-			<option value="global">FLEXI_PROTEMPLATE_ASSIGN_GLOBAL</option>
-			<option value="type">FLEXI_PROTEMPLATE_ASSIGN_TYPE</option>
-			<option value="category">FLEXI_PROTEMPLATE_ASSIGN_CATEGORY</option>
-			<option value="item">FLEXI_PROTEMPLATE_ASSIGN_ITEM</option>
-			<option value="menu">FLEXI_PROTEMPLATE_ASSIGN_MENU</option>
-		</field>
+		<!--
+			view_scope: locked by the chooser screen on create. Hidden in the
+			builder so editors never have to think about it (it would also
+			contradict the chooser's promise — "this is your item layout").
+		-->
+		<field name="view_scope" type="hidden" default="item"/>
 
-		<field
-			name="assignment_value"
-			type="text"
-			label="FLEXI_PROTEMPLATE_ASSIGNMENT_VALUE"
-			description="FLEXI_PROTEMPLATE_ASSIGNMENT_VALUE_DESC"
-			default=""
-			class="form-control"
-			size="100"
-		/>
+		<!--
+			assignment_type + assignment_value: auto-derived in
+			FlexicontentModelProtemplate::save() based on catid + type_id.
+			Hidden in the form so editors only set the filter dimensions
+			that matter (Category, Type) and the routing column is
+			computed for them.
+		-->
+		<field name="assignment_type"  type="hidden" default="global"/>
+		<field name="assignment_value" type="hidden" default=""/>
 
 		<field
 			name="theme_id"

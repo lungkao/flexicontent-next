@@ -55,6 +55,13 @@ class FlexicontentProTemplateResolver
 			'view'    => '',
 		], $context);
 
+		// view_scope enum allowlist — never bind a user-controllable string
+		// into SQL without proof it matches a known value (defense in depth
+		// even though contextFrom* helpers already constrain the value).
+		$viewScope = in_array($context['view'], ['item', 'category'], true)
+			? $context['view']
+			: 'item';
+
 		$cacheKey = $context['view'] . ':'
 			. (int) $context['item_id'] . ':'
 			. (int) $context['cat_id']  . ':'
@@ -72,10 +79,13 @@ class FlexicontentProTemplateResolver
 
 		// Pull all candidate layouts for this context in one query, then
 		// score them in PHP. One DB hit per render context (cached after).
+		// view_scope must match the rendering view — an item-scope layout
+		// must not bleed into the category page and vice versa.
 		$query = $db->getQuery(true)
 			->select('*')
 			->from($db->quoteName('#__flexicontent_pro_layouts'))
 			->where($qn('state') . ' = 1')
+			->where($qn('view_scope') . ' = ' . $db->quote($viewScope))
 			->where(
 				'(' .
 					'(' . $qn('assignment_type') . ' = ' . $db->quote('item')     . ' AND ' . $qn('assignment_value') . ' = ' . $db->quote((string) $context['item_id']) . ')'

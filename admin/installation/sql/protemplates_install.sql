@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS `#__flexicontent_pro_layouts` (
   `assignment_type`  VARCHAR(32)         NOT NULL DEFAULT 'global',
   -- ค่าสำหรับ assignment_type=item หรือ =menu (เก็บ ID เป็น string)
   `assignment_value` VARCHAR(100)        NOT NULL DEFAULT '',
+  -- view scope: 'item' = single article view, 'category' = category list view
+  `view_scope`       VARCHAR(16)         NOT NULL DEFAULT 'item',
   -- JSON ของ layout builder {"version":2,"sections":[...]}
   `layout_data`      LONGTEXT            NULL,
   -- ID ของ theme ที่ใช้ (0 = ไม่ใช้ theme)
@@ -37,6 +39,7 @@ CREATE TABLE IF NOT EXISTS `#__flexicontent_pro_layouts` (
   KEY `idx_state`        (`state`),
   KEY `idx_type_cat`     (`type_id`, `catid`),
   KEY `idx_assignment`   (`assignment_type`, `assignment_value`(50)),
+  KEY `idx_state_viewscope` (`state`, `view_scope`),
   KEY `idx_checkout`     (`checked_out`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

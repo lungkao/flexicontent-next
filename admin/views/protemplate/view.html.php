@@ -20,32 +20,52 @@ require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemp
 require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/models/protemplate.php';
 
 /**
- * Pro Template — Builder (edit) View
+ * Pro Template View — handles two layouts:
+ *   - default (builder editor)
+ *   - choose  (scope picker + preset gallery for new records)
  */
 #[AllowDynamicProperties]
 class FlexicontentViewProtemplate extends HtmlView
 {
-	/** @var object $item */
+	/* Edit mode props */
 	public mixed $item   = null;
-	/** @var array $fields */
 	public mixed $fields = null;
-	/** @var array $themes */
 	public mixed $themes = null;
-	/** @var \Joomla\CMS\Form\Form $form */
 	public mixed $form   = null;
+
+	/* Choose mode props */
+	public mixed $scope         = null;   // 'item' | 'category' | '' (step 1)
+	public mixed $presets       = null;   // array of preset definitions for $scope
+	public mixed $groups        = null;   // filter group registry
+	public mixed $itemCount     = null;   // count of item presets (step 1 card)
+	public mixed $categoryCount = null;   // count of category presets (step 1 card)
 
 	public function display($tpl = null)
 	{
 		$app    = Factory::getApplication();
 		$jinput = $app->input;
-		$id     = (int) $jinput->getInt('id', 0);
+		$layout = (string) $jinput->getCmd('layout', '');
 
-		// Gate: Pro license
 		if (!FlexicontentProLicenseManager::isLicensed()) {
 			$app->enqueueMessage(Text::_('FLEXI_PROTEMPLATE_LICENSE_REQUIRED'), 'error');
 			$app->redirect('index.php?option=com_flexicontent');
 			return;
 		}
+
+		if ($layout === 'choose') {
+			$this->displayChooser($app, $jinput, $tpl);
+			return;
+		}
+
+		$this->displayEditor($app, $jinput, $tpl);
+	}
+
+	/**
+	 * Builder/editor view — existing behavior preserved verbatim.
+	 */
+	protected function displayEditor($app, $jinput, $tpl): void
+	{
+		$id = (int) $jinput->getInt('id', 0);
 
 		/** @var FlexicontentModelProtemplate $model */
 		$model = new FlexicontentModelProtemplate();
@@ -55,16 +75,13 @@ class FlexicontentViewProtemplate extends HtmlView
 		$this->form   = $model->getForm([], true);
 		$this->themes = $model->getThemes();
 
-		// Load fields for the layout's type_id
 		$type_id      = (int) ($this->item->type_id ?? 0);
 		$this->fields = $model->getFieldsForType($type_id);
 
-		// Populate form with item data
 		if ($this->item && $this->form) {
 			$this->form->bind((array) $this->item);
 		}
 
-		// Toolbar
 		$isNew = ($id === 0);
 		ToolbarHelper::title(
 			'<span class="fc-pro-badge">⭐</span> ' .
@@ -75,6 +92,40 @@ class FlexicontentViewProtemplate extends HtmlView
 		ToolbarHelper::save('protemplates.save');
 		ToolbarHelper::cancel('protemplates.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
 
+		parent::display($tpl);
+	}
+
+	/**
+	 * Chooser view — two-step preset gallery.
+	 *   Step 1 (no scope param): scope picker (item / category cards)
+	 *   Step 2 (scope set):      preset card grid + blank starter
+	 */
+	protected function displayChooser($app, $jinput, $tpl): void
+	{
+		require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/PresetLibrary.php';
+
+		$scope = (string) $jinput->getCmd('scope', '');
+		$scope = in_array($scope, ['item', 'category'], true) ? $scope : '';
+
+		$this->scope         = $scope;
+		$this->groups        = FlexicontentProTemplatePresetLibrary::getLayoutGroups();
+		$this->itemCount     = count(FlexicontentProTemplatePresetLibrary::getLayoutPresets('item'));
+		$this->categoryCount = count(FlexicontentProTemplatePresetLibrary::getLayoutPresets('category'));
+
+		if ($scope !== '') {
+			$this->presets = FlexicontentProTemplatePresetLibrary::getLayoutPresets($scope);
+		}
+
+		ToolbarHelper::title(
+			'<span class="fc-pro-badge">⭐</span> ' .
+			Text::_($scope === ''
+				? 'FLEXI_PROTEMPLATE_CHOOSE_SCOPE_TITLE'
+				: 'FLEXI_PROTEMPLATE_CHOOSE_PRESET_TITLE'),
+			'stack'
+		);
+		ToolbarHelper::cancel('protemplates.cancel', 'JTOOLBAR_CLOSE');
+
+		$this->setLayout('choose');
 		parent::display($tpl);
 	}
 }

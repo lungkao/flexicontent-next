@@ -89,8 +89,16 @@ $coreElementsJson = json_encode([
 		<div class="fcpt-details-side">
 			<div class="fcpt-detail-field"><?= $this->form->renderField('type_id') ?></div>
 			<div class="fcpt-detail-field"><?= $this->form->renderField('catid') ?></div>
-			<div class="fcpt-detail-field"><?= $this->form->renderField('assignment_type') ?></div>
-			<div class="fcpt-detail-field is-wide"><?= $this->form->renderField('assignment_value') ?></div>
+			<?php
+			// Hidden routing columns — UI doesn't expose assignment_type /
+			// assignment_value / view_scope; they are auto-derived by the
+			// model on save based on catid + type_id (scope is fixed by
+			// the chooser at create time). Rendering the hidden inputs
+			// ensures the form submission carries them through validation.
+			?>
+			<?= $this->form->getInput('view_scope') ?>
+			<?= $this->form->getInput('assignment_type') ?>
+			<?= $this->form->getInput('assignment_value') ?>
 			<div class="fcpt-detail-field"><?= $this->form->renderField('state') ?></div>
 			<div class="fcpt-detail-field"><?= $this->form->renderField('ordering') ?></div>
 			<div class="fcpt-detail-field is-wide"><?= $this->form->renderField('note') ?></div>

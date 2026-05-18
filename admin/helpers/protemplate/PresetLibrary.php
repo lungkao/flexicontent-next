@@ -1,0 +1,883 @@
+<?php
+/**
+ * @package         FLEXIcontent
+ * @subpackage      Pro Templates — Preset Library
+ *
+ * @author          FLEXIcontent Team
+ * @license         http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL
+ *
+ * Curated library of starter layouts (item + category) and themes consumed by
+ * the "Create from preset" chooser screen. Presets ship full layout_data JSON
+ * in the builder's canonical shape (sections > rows > cols > elements), so
+ * they render correctly in both the builder canvas and the frontend Renderer
+ * with zero special-casing.
+ *
+ * SVG thumbnail fills are tuned to meet WCAG 1.4.11 (3:1) against the
+ * #f8fafc card background — structural rects use slate-500 (#64748b, ~4.4:1)
+ * or slate-600 (#475569, ~7.7:1), title rects use slate-900 (#0f172a, ~17:1).
+ *
+ * Adding a new preset: append to the relevant catalogue array, add i18n keys,
+ * and verify the SVG fills still pass 3:1 if you tweak colors.
+ */
+
+defined('_JEXEC') or die('Restricted access');
+
+class FlexicontentProTemplatePresetLibrary
+{
+	/* ---------------------------------------------------------------------
+	 * Public API
+	 * ------------------------------------------------------------------- */
+
+	public static function getLayoutPresets(string $scope): array
+	{
+		$scope = $scope === 'category' ? 'category' : 'item';
+
+		return $scope === 'item'
+			? self::itemPresets()
+			: self::categoryPresets();
+	}
+
+	public static function getLayoutPreset(string $key): ?array
+	{
+		foreach (array_merge(self::itemPresets(), self::categoryPresets()) as $preset) {
+			if ($preset['key'] === $key) {
+				return $preset;
+			}
+		}
+		return null;
+	}
+
+	public static function getThemePresets(): array
+	{
+		return self::themePresets();
+	}
+
+	public static function getThemePreset(string $key): ?array
+	{
+		foreach (self::themePresets() as $preset) {
+			if ($preset['key'] === $key) {
+				return $preset;
+			}
+		}
+		return null;
+	}
+
+	public static function getLayoutGroups(): array
+	{
+		return [
+			['key' => 'all',       'label_key' => 'FLEXI_PRESET_GROUP_ALL'],
+			['key' => 'editorial', 'label_key' => 'FLEXI_PRESET_GROUP_EDITORIAL'],
+			['key' => 'magazine',  'label_key' => 'FLEXI_PRESET_GROUP_MAGAZINE'],
+			['key' => 'media',     'label_key' => 'FLEXI_PRESET_GROUP_MEDIA'],
+			['key' => 'compact',   'label_key' => 'FLEXI_PRESET_GROUP_COMPACT'],
+		];
+	}
+
+	public static function getThemeGroups(): array
+	{
+		return [
+			['key' => 'all',       'label_key' => 'FLEXI_PRESET_GROUP_ALL'],
+			['key' => 'modern',    'label_key' => 'FLEXI_PRESET_GROUP_MODERN'],
+			['key' => 'editorial', 'label_key' => 'FLEXI_PRESET_GROUP_EDITORIAL'],
+			['key' => 'minimal',   'label_key' => 'FLEXI_PRESET_GROUP_MINIMAL'],
+			['key' => 'dark',      'label_key' => 'FLEXI_PRESET_GROUP_DARK'],
+		];
+	}
+
+	/* ---------------------------------------------------------------------
+	 * Element / row / section factory helpers — produce JSON fragments in
+	 * the builder's canonical shape (matches fcptNormalizeLayout in the
+	 * builder template). UIDs are deterministic per-preset.
+	 * ------------------------------------------------------------------- */
+
+	protected static function uid(string $key, string $what, int $n): string
+	{
+		return $key . '-' . $what . '-' . $n;
+	}
+
+	protected static function article(string $name, string $tag = 'div', string $variant = 'default', string $extraClass = ''): array
+	{
+		return [
+			'type'    => 'article',
+			'name'    => $name,
+			'tag'     => $tag,
+			'variant' => $variant,
+			'class'   => trim('fcpt-item-' . str_replace('_', '-', $name) . ' ' . $extraClass),
+		];
+	}
+
+	protected static function heading(string $text, string $level = 'h3', string $variant = 'default'): array
+	{
+		return [
+			'type'    => 'heading',
+			'text'    => $text,
+			'level'   => $level,
+			'variant' => $variant,
+		];
+	}
+
+	protected static function text(string $text, string $tag = 'p', string $variant = 'default'): array
+	{
+		return [
+			'type'    => 'text',
+			'text'    => $text,
+			'tag'     => $tag,
+			'variant' => $variant,
+			'class'   => '',
+		];
+	}
+
+	protected static function separator(): array
+	{
+		return ['type' => 'separator'];
+	}
+
+	protected static function col(string $key, int $n, int $width, array $elements, string $appearance = 'default'): array
+	{
+		$tagged = [];
+		foreach ($elements as $i => $el) {
+			$tagged[] = $el + ['_uid' => self::uid($key, 'el', ($n * 10) + $i)];
+		}
+
+		return [
+			'id'         => self::uid($key, 'col', $n),
+			'width'      => max(2, min(12, $width)),
+			'class'      => 'fcpt-col-default',
+			'appearance' => $appearance,
+			'elements'   => $tagged,
+		];
+	}
+
+	protected static function row(string $key, int $n, array $cols, string $appearance = 'default'): array
+	{
+		return [
+			'id'         => self::uid($key, 'row', $n),
+			'class'      => 'fcpt-row-default',
+			'appearance' => $appearance,
+			'cols'       => $cols,
+		];
+	}
+
+	protected static function section(string $key, int $n, string $label, string $appearance, array $rows): array
+	{
+		return [
+			'id'         => self::uid($key, 'sec', $n),
+			'label'      => $label,
+			'class'      => 'fcpt-section-default',
+			'appearance' => $appearance,
+			'rows'       => $rows,
+		];
+	}
+
+	protected static function layout(array $sections, string $themePreset = 'clean', string $width = 'default', string $spacing = 'normal'): array
+	{
+		return [
+			'version'  => 2,
+			'settings' => [
+				'theme'   => $themePreset,
+				'width'   => $width,
+				'spacing' => $spacing,
+				'themeId' => 0,
+			],
+			'sections' => $sections,
+		];
+	}
+
+	/* ---------------------------------------------------------------------
+	 * Item-scope presets (4)
+	 * ------------------------------------------------------------------- */
+
+	protected static function itemPresets(): array
+	{
+		return [
+			self::itemMagazine(),
+			self::itemEditorial(),
+			self::itemMediaRich(),
+			self::itemCompact(),
+		];
+	}
+
+	protected static function itemMagazine(): array
+	{
+		$k = 'item-magazine';
+
+		$layout = self::layout([
+			self::section($k, 1, 'Hero', 'hero', [
+				self::row($k, 1, [
+					self::col($k, 1, 12, [
+						self::article('image_intro', 'figure', 'display', 'fcpt-hero-image'),
+						self::article('title',       'h1',     'display'),
+						self::article('introtext',   'div',    'lead'),
+					]),
+				]),
+			]),
+			self::section($k, 2, 'Body + Meta', 'plain', [
+				self::row($k, 2, [
+					self::col($k, 2, 8, [
+						self::article('fulltext', 'div', 'default'),
+					]),
+					self::col($k, 3, 4, [
+						self::heading('Article info', 'h3', 'default'),
+						self::article('author',   'span', 'pill'),
+						self::article('created',  'time', 'muted'),
+						self::article('category', 'span', 'pill'),
+						self::article('tags',     'div',  'default'),
+						self::article('hits',     'span', 'stat'),
+					]),
+				], 'media'),
+			]),
+		], 'editorial', 'default', 'normal');
+
+		return [
+			'key'             => $k,
+			'scope'           => 'item',
+			'title_key'       => 'FLEXI_PRESET_ITEM_MAGAZINE',
+			'description_key' => 'FLEXI_PRESET_ITEM_MAGAZINE_DESC',
+			'group'           => 'magazine',
+			'thumbnail'       => self::thumbItemMagazine(),
+			'layout'          => $layout,
+		];
+	}
+
+	protected static function itemEditorial(): array
+	{
+		$k = 'item-editorial';
+
+		$layout = self::layout([
+			self::section($k, 1, 'Lead', 'plain', [
+				self::row($k, 1, [
+					self::col($k, 1, 12, [
+						self::article('category', 'span', 'pill'),
+						self::article('title',    'h1',   'display'),
+						self::article('author',   'span', 'muted'),
+						self::article('created',  'time', 'muted'),
+					]),
+				]),
+			]),
+			self::section($k, 2, 'Intro', 'plain', [
+				self::row($k, 2, [
+					self::col($k, 2, 12, [
+						self::article('introtext', 'div', 'lead'),
+					]),
+				]),
+			]),
+			self::section($k, 3, 'Body', 'plain', [
+				self::row($k, 3, [
+					self::col($k, 3, 6, [
+						self::article('fulltext', 'div', 'default'),
+					]),
+					self::col($k, 4, 6, [
+						self::article('image_full', 'figure', 'card'),
+						self::article('tags',       'div',    'default'),
+					]),
+				]),
+			]),
+		], 'clean', 'narrow', 'airy');
+
+		return [
+			'key'             => $k,
+			'scope'           => 'item',
+			'title_key'       => 'FLEXI_PRESET_ITEM_EDITORIAL',
+			'description_key' => 'FLEXI_PRESET_ITEM_EDITORIAL_DESC',
+			'group'           => 'editorial',
+			'thumbnail'       => self::thumbItemEditorial(),
+			'layout'          => $layout,
+		];
+	}
+
+	protected static function itemMediaRich(): array
+	{
+		$k = 'item-media';
+
+		$layout = self::layout([
+			self::section($k, 1, 'Hero image', 'hero', [
+				self::row($k, 1, [
+					self::col($k, 1, 12, [
+						self::article('image_full', 'figure', 'display', 'fcpt-hero-image'),
+					]),
+				]),
+			]),
+			self::section($k, 2, 'Title strip', 'band', [
+				self::row($k, 2, [
+					self::col($k, 2, 12, [
+						self::article('title',     'h1',   'display'),
+						self::article('introtext', 'div',  'lead'),
+					]),
+				]),
+			]),
+			self::section($k, 3, 'Two-column body', 'plain', [
+				self::row($k, 3, [
+					self::col($k, 3, 4, [
+						self::article('image_intro', 'figure', 'card'),
+						self::article('category',    'span',   'pill'),
+						self::article('tags',        'div',    'default'),
+					]),
+					self::col($k, 4, 8, [
+						self::article('fulltext', 'div', 'default'),
+					]),
+				], 'media'),
+			]),
+		], 'soft', 'wide', 'normal');
+
+		return [
+			'key'             => $k,
+			'scope'           => 'item',
+			'title_key'       => 'FLEXI_PRESET_ITEM_MEDIA',
+			'description_key' => 'FLEXI_PRESET_ITEM_MEDIA_DESC',
+			'group'           => 'media',
+			'thumbnail'       => self::thumbItemMedia(),
+			'layout'          => $layout,
+		];
+	}
+
+	protected static function itemCompact(): array
+	{
+		$k = 'item-compact';
+
+		$layout = self::layout([
+			self::section($k, 1, 'Compact item', 'plain', [
+				self::row($k, 1, [
+					self::col($k, 1, 12, [
+						self::article('title',     'h1',   'default'),
+						self::article('created',   'time', 'muted'),
+						self::article('author',    'span', 'muted'),
+						self::separator(),
+						self::article('introtext', 'div',  'default'),
+						self::article('fulltext',  'div',  'default'),
+						self::article('tags',      'div',  'default'),
+					]),
+				]),
+			]),
+		], 'clean', 'narrow', 'compact');
+
+		return [
+			'key'             => $k,
+			'scope'           => 'item',
+			'title_key'       => 'FLEXI_PRESET_ITEM_COMPACT',
+			'description_key' => 'FLEXI_PRESET_ITEM_COMPACT_DESC',
+			'group'           => 'compact',
+			'thumbnail'       => self::thumbItemCompact(),
+			'layout'          => $layout,
+		];
+	}
+
+	/* ---------------------------------------------------------------------
+	 * Category-scope presets (4)
+	 * ------------------------------------------------------------------- */
+
+	protected static function categoryPresets(): array
+	{
+		return [
+			self::categoryGridCards(),
+			self::categoryFeaturedList(),
+			self::categoryMagazineIndex(),
+			self::categoryCompactList(),
+		];
+	}
+
+	protected static function categoryGridCards(): array
+	{
+		$k = 'cat-grid';
+
+		$layout = self::layout([
+			self::section($k, 1, 'Category header', 'hero', [
+				self::row($k, 1, [
+					self::col($k, 1, 12, [
+						self::article('title',     'h1',  'display'),
+						self::article('introtext', 'div', 'lead'),
+					]),
+				]),
+			]),
+			self::section($k, 2, 'Items grid', 'plain', [
+				self::row($k, 2, [
+					self::col($k, 2, 4, [
+						self::heading('Featured items', 'h2', 'default'),
+						self::text('Items grid renders here — column width controls cards-per-row.', 'p', 'muted'),
+					]),
+					self::col($k, 3, 4, [
+						self::text('Card slot', 'div', 'default'),
+					]),
+					self::col($k, 4, 4, [
+						self::text('Card slot', 'div', 'default'),
+					]),
+				], 'bento'),
+			]),
+		], 'clean', 'default', 'normal');
+
+		return [
+			'key'             => $k,
+			'scope'           => 'category',
+			'title_key'       => 'FLEXI_PRESET_CAT_GRID',
+			'description_key' => 'FLEXI_PRESET_CAT_GRID_DESC',
+			'group'           => 'magazine',
+			'thumbnail'       => self::thumbCatGrid(),
+			'layout'          => $layout,
+		];
+	}
+
+	protected static function categoryFeaturedList(): array
+	{
+		$k = 'cat-featured';
+
+		$layout = self::layout([
+			self::section($k, 1, 'Intro', 'plain', [
+				self::row($k, 1, [
+					self::col($k, 1, 12, [
+						self::article('title',     'h1',  'display'),
+						self::article('introtext', 'div', 'lead'),
+					]),
+				]),
+			]),
+			self::section($k, 2, 'Hero item', 'feature', [
+				self::row($k, 2, [
+					self::col($k, 2, 7, [
+						self::article('image_intro', 'figure', 'display'),
+					]),
+					self::col($k, 3, 5, [
+						self::heading('Featured story', 'h2', 'default'),
+						self::text('Top item from category renders here.', 'p', 'lead'),
+					]),
+				], 'media'),
+			]),
+			self::section($k, 3, 'List', 'plain', [
+				self::row($k, 3, [
+					self::col($k, 4, 12, [
+						self::heading('More from this category', 'h2', 'default'),
+						self::text('Items list renders below.', 'p', 'muted'),
+					]),
+				], 'stacked'),
+			]),
+		], 'editorial', 'default', 'normal');
+
+		return [
+			'key'             => $k,
+			'scope'           => 'category',
+			'title_key'       => 'FLEXI_PRESET_CAT_FEATURED',
+			'description_key' => 'FLEXI_PRESET_CAT_FEATURED_DESC',
+			'group'           => 'editorial',
+			'thumbnail'       => self::thumbCatFeatured(),
+			'layout'          => $layout,
+		];
+	}
+
+	protected static function categoryMagazineIndex(): array
+	{
+		$k = 'cat-magazine';
+
+		$layout = self::layout([
+			self::section($k, 1, 'Header', 'band', [
+				self::row($k, 1, [
+					self::col($k, 1, 12, [
+						self::article('title', 'h1', 'display'),
+					]),
+				]),
+			]),
+			self::section($k, 2, 'Bento mix', 'bento', [
+				self::row($k, 2, [
+					self::col($k, 2, 8, [
+						self::heading('Lead story', 'h2', 'default'),
+						self::text('Primary feature renders here.', 'p', 'lead'),
+					]),
+					self::col($k, 3, 4, [
+						self::heading('Editor pick', 'h3', 'default'),
+						self::text('Secondary item slot.', 'p', 'muted'),
+					]),
+				], 'bento'),
+				self::row($k, 3, [
+					self::col($k, 4, 4, [self::text('Card slot 1', 'div', 'default')]),
+					self::col($k, 5, 4, [self::text('Card slot 2', 'div', 'default')]),
+					self::col($k, 6, 4, [self::text('Card slot 3', 'div', 'default')]),
+				], 'bento'),
+			]),
+			self::section($k, 3, 'Description', 'plain', [
+				self::row($k, 4, [
+					self::col($k, 7, 12, [
+						self::article('introtext', 'div', 'default'),
+					]),
+				]),
+			]),
+		], 'contrast', 'wide', 'normal');
+
+		return [
+			'key'             => $k,
+			'scope'           => 'category',
+			'title_key'       => 'FLEXI_PRESET_CAT_MAGAZINE',
+			'description_key' => 'FLEXI_PRESET_CAT_MAGAZINE_DESC',
+			'group'           => 'magazine',
+			'thumbnail'       => self::thumbCatMagazine(),
+			'layout'          => $layout,
+		];
+	}
+
+	protected static function categoryCompactList(): array
+	{
+		$k = 'cat-compact';
+
+		$layout = self::layout([
+			self::section($k, 1, 'Compact header', 'plain', [
+				self::row($k, 1, [
+					self::col($k, 1, 12, [
+						self::article('title',     'h1',  'default'),
+						self::article('introtext', 'div', 'muted'),
+						self::separator(),
+					]),
+				]),
+			]),
+			self::section($k, 2, 'List', 'plain', [
+				self::row($k, 2, [
+					self::col($k, 2, 12, [
+						self::heading('Items', 'h2', 'default'),
+						self::text('Dense items list renders here.', 'p', 'muted'),
+					]),
+				], 'compact'),
+			]),
+		], 'clean', 'narrow', 'compact');
+
+		return [
+			'key'             => $k,
+			'scope'           => 'category',
+			'title_key'       => 'FLEXI_PRESET_CAT_COMPACT',
+			'description_key' => 'FLEXI_PRESET_CAT_COMPACT_DESC',
+			'group'           => 'compact',
+			'thumbnail'       => self::thumbCatCompact(),
+			'layout'          => $layout,
+		];
+	}
+
+	/* ---------------------------------------------------------------------
+	 * Theme presets (6) — all colour pairs verified to clear WCAG AA 4.5:1
+	 * for body text against their declared surface. If you add a preset run
+	 * WebAIM contrast check on every text-on-surface pair before merging.
+	 * ------------------------------------------------------------------- */
+
+	protected static function themePresets(): array
+	{
+		return [
+			[
+				'key'             => 'modern-blue',
+				'title_key'       => 'FLEXI_PRESET_THEME_MODERN_BLUE',
+				'description_key' => 'FLEXI_PRESET_THEME_MODERN_BLUE_DESC',
+				'group'           => 'modern',
+				'thumbnail'       => self::thumbTheme('#2563eb', '#ffffff', '#0f172a'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#2563eb',
+						'surface'     => '#ffffff',
+						'surface_alt' => '#f1f5f9',
+						'text'        => '#0f172a',
+						'text_muted'  => '#475569',
+						'border'      => '#cbd5e1',
+					],
+					'typography' => [
+						'family'         => 'Inter, system-ui, sans-serif',
+						'family_heading' => 'Inter, system-ui, sans-serif',
+						'scale'          => 1.0,
+						'line_height'    => 1.6,
+					],
+					'radius' => 'md',
+					'mode'   => 'light',
+				],
+			],
+			[
+				'key'             => 'editorial-warm',
+				'title_key'       => 'FLEXI_PRESET_THEME_EDITORIAL_WARM',
+				'description_key' => 'FLEXI_PRESET_THEME_EDITORIAL_WARM_DESC',
+				'group'           => 'editorial',
+				'thumbnail'       => self::thumbTheme('#b45309', '#fffaf0', '#3f2a0f'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#b45309',
+						'surface'     => '#fffaf0',
+						'surface_alt' => '#fdf3e1',
+						'text'        => '#3f2a0f',
+						'text_muted'  => '#6b4a23',
+						'border'      => '#e6d3b3',
+					],
+					'typography' => [
+						'family'         => 'Georgia, "Times New Roman", serif',
+						'family_heading' => 'Playfair Display, Georgia, serif',
+						'scale'          => 1.05,
+						'line_height'    => 1.7,
+					],
+					'radius' => 'sm',
+					'mode'   => 'light',
+				],
+			],
+			[
+				'key'             => 'minimal-mono',
+				'title_key'       => 'FLEXI_PRESET_THEME_MINIMAL_MONO',
+				'description_key' => 'FLEXI_PRESET_THEME_MINIMAL_MONO_DESC',
+				'group'           => 'minimal',
+				'thumbnail'       => self::thumbTheme('#111827', '#ffffff', '#111827'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#111827',
+						'surface'     => '#ffffff',
+						'surface_alt' => '#f8fafc',
+						'text'        => '#111827',
+						'text_muted'  => '#4b5563',
+						'border'      => '#9ca3af',
+					],
+					'typography' => [
+						'family'         => 'system-ui, -apple-system, sans-serif',
+						'family_heading' => 'system-ui, -apple-system, sans-serif',
+						'scale'          => 0.95,
+						'line_height'    => 1.55,
+					],
+					'radius' => 'sm',
+					'mode'   => 'light',
+				],
+			],
+			[
+				'key'             => 'dark-pro',
+				'title_key'       => 'FLEXI_PRESET_THEME_DARK_PRO',
+				'description_key' => 'FLEXI_PRESET_THEME_DARK_PRO_DESC',
+				'group'           => 'dark',
+				'thumbnail'       => self::thumbTheme('#38bdf8', '#0f172a', '#e2e8f0'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#38bdf8',
+						'surface'     => '#0f172a',
+						'surface_alt' => '#1e293b',
+						'text'        => '#e2e8f0',
+						'text_muted'  => '#94a3b8',
+						'border'      => '#334155',
+					],
+					'typography' => [
+						'family'         => 'Inter, system-ui, sans-serif',
+						'family_heading' => 'Inter, system-ui, sans-serif',
+						'scale'          => 1.0,
+						'line_height'    => 1.6,
+					],
+					'radius' => 'md',
+					'mode'   => 'dark',
+				],
+			],
+			[
+				'key'             => 'nature-green',
+				'title_key'       => 'FLEXI_PRESET_THEME_NATURE_GREEN',
+				'description_key' => 'FLEXI_PRESET_THEME_NATURE_GREEN_DESC',
+				'group'           => 'modern',
+				'thumbnail'       => self::thumbTheme('#0f766e', '#f0fdfa', '#134e4a'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#0f766e',
+						'surface'     => '#f0fdfa',
+						'surface_alt' => '#ccfbf1',
+						'text'        => '#134e4a',
+						'text_muted'  => '#3f6359',
+						'border'      => '#5eead4',
+					],
+					'typography' => [
+						'family'         => 'Inter, system-ui, sans-serif',
+						'family_heading' => 'Inter, system-ui, sans-serif',
+						'scale'          => 1.0,
+						'line_height'    => 1.65,
+					],
+					'radius' => 'lg',
+					'mode'   => 'light',
+				],
+			],
+			[
+				'key'             => 'royal',
+				'title_key'       => 'FLEXI_PRESET_THEME_ROYAL',
+				'description_key' => 'FLEXI_PRESET_THEME_ROYAL_DESC',
+				'group'           => 'editorial',
+				'thumbnail'       => self::thumbTheme('#6d28d9', '#faf5ff', '#3b0764'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#6d28d9',
+						'surface'     => '#faf5ff',
+						'surface_alt' => '#f3e8ff',
+						'text'        => '#3b0764',
+						'text_muted'  => '#5b21b6',
+						'border'      => '#c4b5fd',
+					],
+					'typography' => [
+						'family'         => 'Inter, system-ui, sans-serif',
+						'family_heading' => '"Playfair Display", Georgia, serif',
+						'scale'          => 1.05,
+						'line_height'    => 1.65,
+					],
+					'radius' => 'md',
+					'mode'   => 'light',
+				],
+			],
+		];
+	}
+
+	/* ---------------------------------------------------------------------
+	 * SVG thumbnail factories
+	 *
+	 * Returned as raw <svg> strings, aria-hidden="true" + focusable="false"
+	 * (decorative — the card's text label provides the accessible name).
+	 * 240x150 canvas. All structural fills are >=3:1 against #f8fafc card bg
+	 * to satisfy WCAG 1.4.11 even though the SVG is hidden from AT.
+	 * Palette:
+	 *   #0f172a slate-900  ~17:1   (titles, dark blocks)
+	 *   #475569 slate-600  ~7.7:1  (body lines)
+	 *   #64748b slate-500  ~4.4:1  (image placeholders, subtle blocks)
+	 *   #2563eb blue-600   ~5.2:1  (accent stripes / pills)
+	 * ------------------------------------------------------------------- */
+
+	protected static function svgFrame(string $body): string
+	{
+		return '<svg viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg" '
+		     . 'class="fcpt-preset-thumb-svg" aria-hidden="true" focusable="false">'
+		     . '<rect width="240" height="150" rx="6" fill="#f8fafc" stroke="#64748b"/>'
+		     . $body
+		     . '</svg>';
+	}
+
+	protected static function thumbItemMagazine(): string
+	{
+		return self::svgFrame(
+			'<rect x="14" y="14" width="212" height="46" rx="3" fill="#64748b"/>'
+			. '<rect x="14" y="68" width="170" height="9" rx="2" fill="#0f172a"/>'
+			. '<rect x="14" y="84" width="138" height="5" fill="#475569"/>'
+			. '<rect x="14" y="93" width="138" height="5" fill="#475569"/>'
+			. '<rect x="14" y="102" width="120" height="5" fill="#475569"/>'
+			. '<rect x="14" y="111" width="138" height="5" fill="#475569"/>'
+			. '<rect x="14" y="120" width="100" height="5" fill="#475569"/>'
+			. '<rect x="160" y="84" width="66" height="5" rx="1" fill="#2563eb"/>'
+			. '<rect x="160" y="93" width="50" height="5" fill="#64748b"/>'
+			. '<rect x="160" y="102" width="50" height="5" fill="#64748b"/>'
+			. '<rect x="160" y="111" width="40" height="5" fill="#64748b"/>'
+		);
+	}
+
+	protected static function thumbItemEditorial(): string
+	{
+		return self::svgFrame(
+			'<rect x="60" y="14" width="34" height="7" rx="3" fill="#2563eb"/>'
+			. '<rect x="60" y="26" width="120" height="11" rx="2" fill="#0f172a"/>'
+			. '<rect x="60" y="42" width="60" height="5" fill="#64748b"/>'
+			. '<rect x="60" y="56" width="120" height="6" fill="#475569"/>'
+			. '<rect x="60" y="65" width="110" height="6" fill="#475569"/>'
+			. '<rect x="14" y="80" width="105" height="5" fill="#475569"/>'
+			. '<rect x="14" y="89" width="105" height="5" fill="#475569"/>'
+			. '<rect x="14" y="98" width="105" height="5" fill="#475569"/>'
+			. '<rect x="14" y="107" width="90" height="5" fill="#475569"/>'
+			. '<rect x="128" y="80" width="98" height="50" rx="3" fill="#64748b"/>'
+		);
+	}
+
+	protected static function thumbItemMedia(): string
+	{
+		return self::svgFrame(
+			'<rect x="14" y="14" width="212" height="60" rx="3" fill="#64748b"/>'
+			. '<rect x="14" y="80" width="212" height="14" rx="2" fill="#0f172a"/>'
+			. '<rect x="22" y="85" width="100" height="4" fill="#f8fafc"/>'
+			. '<rect x="14" y="102" width="62" height="32" rx="2" fill="#64748b"/>'
+			. '<rect x="84" y="102" width="142" height="5" fill="#475569"/>'
+			. '<rect x="84" y="111" width="142" height="5" fill="#475569"/>'
+			. '<rect x="84" y="120" width="120" height="5" fill="#475569"/>'
+			. '<rect x="84" y="129" width="142" height="5" fill="#475569"/>'
+		);
+	}
+
+	protected static function thumbItemCompact(): string
+	{
+		return self::svgFrame(
+			'<rect x="20" y="20" width="140" height="9" rx="2" fill="#0f172a"/>'
+			. '<rect x="20" y="36" width="56" height="5" fill="#64748b"/>'
+			. '<rect x="82" y="36" width="44" height="5" fill="#64748b"/>'
+			. '<rect x="20" y="50" width="200" height="1" fill="#64748b"/>'
+			. '<rect x="20" y="60" width="200" height="5" fill="#475569"/>'
+			. '<rect x="20" y="70" width="200" height="5" fill="#475569"/>'
+			. '<rect x="20" y="80" width="180" height="5" fill="#475569"/>'
+			. '<rect x="20" y="90" width="200" height="5" fill="#475569"/>'
+			. '<rect x="20" y="100" width="170" height="5" fill="#475569"/>'
+			. '<rect x="20" y="110" width="200" height="5" fill="#475569"/>'
+			. '<rect x="20" y="120" width="120" height="5" fill="#475569"/>'
+		);
+	}
+
+	protected static function thumbCatGrid(): string
+	{
+		return self::svgFrame(
+			'<rect x="14" y="14" width="160" height="10" rx="2" fill="#0f172a"/>'
+			. '<rect x="14" y="30" width="200" height="5" fill="#64748b"/>'
+			. '<rect x="14" y="50" width="66" height="40" rx="3" fill="#64748b"/>'
+			. '<rect x="14" y="93" width="50" height="4" fill="#0f172a"/>'
+			. '<rect x="14" y="101" width="40" height="3" fill="#475569"/>'
+			. '<rect x="87" y="50" width="66" height="40" rx="3" fill="#64748b"/>'
+			. '<rect x="87" y="93" width="50" height="4" fill="#0f172a"/>'
+			. '<rect x="87" y="101" width="40" height="3" fill="#475569"/>'
+			. '<rect x="160" y="50" width="66" height="40" rx="3" fill="#64748b"/>'
+			. '<rect x="160" y="93" width="50" height="4" fill="#0f172a"/>'
+			. '<rect x="160" y="101" width="40" height="3" fill="#475569"/>'
+			. '<rect x="14" y="115" width="66" height="20" rx="3" fill="#475569"/>'
+			. '<rect x="87" y="115" width="66" height="20" rx="3" fill="#475569"/>'
+			. '<rect x="160" y="115" width="66" height="20" rx="3" fill="#475569"/>'
+		);
+	}
+
+	protected static function thumbCatFeatured(): string
+	{
+		return self::svgFrame(
+			'<rect x="14" y="14" width="180" height="9" rx="2" fill="#0f172a"/>'
+			. '<rect x="14" y="28" width="160" height="5" fill="#64748b"/>'
+			. '<rect x="14" y="42" width="124" height="56" rx="3" fill="#64748b"/>'
+			. '<rect x="146" y="50" width="80" height="7" rx="2" fill="#0f172a"/>'
+			. '<rect x="146" y="62" width="80" height="4" fill="#475569"/>'
+			. '<rect x="146" y="70" width="70" height="4" fill="#475569"/>'
+			. '<rect x="146" y="78" width="60" height="4" fill="#475569"/>'
+			. '<rect x="14" y="108" width="212" height="9" rx="2" fill="#475569"/>'
+			. '<rect x="14" y="122" width="212" height="9" rx="2" fill="#475569"/>'
+		);
+	}
+
+	protected static function thumbCatMagazine(): string
+	{
+		return self::svgFrame(
+			'<rect x="14" y="14" width="212" height="18" rx="2" fill="#0f172a"/>'
+			. '<rect x="22" y="20" width="80" height="6" fill="#f8fafc"/>'
+			. '<rect x="14" y="40" width="140" height="46" rx="3" fill="#64748b"/>'
+			. '<rect x="160" y="40" width="66" height="46" rx="3" fill="#64748b"/>'
+			. '<rect x="14" y="92" width="66" height="32" rx="3" fill="#64748b"/>'
+			. '<rect x="87" y="92" width="66" height="32" rx="3" fill="#64748b"/>'
+			. '<rect x="160" y="92" width="66" height="32" rx="3" fill="#64748b"/>'
+			. '<rect x="14" y="130" width="212" height="4" fill="#475569"/>'
+		);
+	}
+
+	protected static function thumbCatCompact(): string
+	{
+		return self::svgFrame(
+			'<rect x="20" y="18" width="140" height="9" rx="2" fill="#0f172a"/>'
+			. '<rect x="20" y="32" width="200" height="4" fill="#64748b"/>'
+			. '<rect x="20" y="44" width="200" height="1" fill="#64748b"/>'
+			. '<rect x="20" y="54" width="200" height="6" rx="1" fill="#475569"/>'
+			. '<rect x="20" y="64" width="200" height="6" rx="1" fill="#475569"/>'
+			. '<rect x="20" y="74" width="200" height="6" rx="1" fill="#475569"/>'
+			. '<rect x="20" y="84" width="200" height="6" rx="1" fill="#475569"/>'
+			. '<rect x="20" y="94" width="200" height="6" rx="1" fill="#475569"/>'
+			. '<rect x="20" y="104" width="200" height="6" rx="1" fill="#475569"/>'
+			. '<rect x="20" y="114" width="200" height="6" rx="1" fill="#475569"/>'
+			. '<rect x="20" y="124" width="200" height="6" rx="1" fill="#475569"/>'
+		);
+	}
+
+	protected static function thumbTheme(string $accent, string $surface, string $text): string
+	{
+		$a = htmlspecialchars($accent,  ENT_QUOTES, 'UTF-8');
+		$s = htmlspecialchars($surface, ENT_QUOTES, 'UTF-8');
+		$t = htmlspecialchars($text,    ENT_QUOTES, 'UTF-8');
+
+		$body = '<rect width="240" height="150" rx="6" fill="' . $s . '" stroke="#64748b"/>'
+		      . '<rect x="0" y="0" width="240" height="14" fill="' . $a . '"/>'
+		      . '<rect x="18" y="30" width="140" height="10" rx="2" fill="' . $t . '"/>'
+		      . '<rect x="18" y="50" width="200" height="4" rx="1" fill="' . $t . '" opacity="0.75"/>'
+		      . '<rect x="18" y="60" width="180" height="4" rx="1" fill="' . $t . '" opacity="0.75"/>'
+		      . '<rect x="18" y="70" width="200" height="4" rx="1" fill="' . $t . '" opacity="0.75"/>'
+		      . '<rect x="18" y="80" width="160" height="4" rx="1" fill="' . $t . '" opacity="0.75"/>'
+		      . '<rect x="18" y="100" width="58" height="20" rx="3" fill="' . $a . '"/>'
+		      . '<rect x="82" y="100" width="36" height="20" rx="10" fill="' . $a . '" opacity="0.30"/>';
+
+		return '<svg viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg" '
+		     . 'class="fcpt-preset-thumb-svg" aria-hidden="true" focusable="false">'
+		     . $body
+		     . '</svg>';
+	}
+}

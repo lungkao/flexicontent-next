@@ -79,6 +79,96 @@ class FlexicontentControllerProthemes extends FlexicontentControllerBaseAdmin
 		$app->close();
 	}
 
+	// -------------------------------------------------------------------------
+	// Create theme from preset (chooser screen submit handler)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * task=prothemes.createFromPreset
+	 *
+	 * POST:
+	 *   preset_key   — key from PresetLibrary OR 'blank-theme'
+	 *   title        — user-entered title
+	 *   {token}=1    — CSRF
+	 */
+	public function createFromPreset(): void
+	{
+		$app    = Factory::getApplication();
+		$jinput = $app->input;
+
+		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+
+		$presetKey = (string) $jinput->getCmd('preset_key', '');
+		$title     = trim((string) $jinput->getString('title', ''));
+
+		if ($title === '') {
+			$title = Text::_('FLEXI_PRESET_DEFAULT_TITLE_THEME');
+			if ($title === 'FLEXI_PRESET_DEFAULT_TITLE_THEME') {
+				$title = 'New theme';
+			}
+		}
+
+		require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/PresetLibrary.php';
+
+		$validPreset = $presetKey === 'blank-theme';
+		if (!$validPreset) {
+			$preset = FlexicontentProTemplatePresetLibrary::getThemePreset($presetKey);
+			if ($preset) {
+				$validPreset = true;
+			}
+		}
+
+		if (!$validPreset) {
+			$app->enqueueMessage(Text::_('FLEXI_PRESET_INVALID'), 'error');
+			$app->redirect('index.php?option=com_flexicontent&view=protheme&layout=choose');
+			return;
+		}
+
+		/** @var FlexicontentModelProtheme $model */
+		$model = $this->getModel('protheme', '', []);
+		$id    = $model->createFromPreset($presetKey, $title);
+
+		if ($id <= 0) {
+			$app->enqueueMessage($model->getError() ?: Text::_('FLEXI_PRESET_CREATE_FAILED'), 'error');
+			$app->redirect('index.php?option=com_flexicontent&view=protheme&layout=choose');
+			return;
+		}
+
+		$app->enqueueMessage(Text::_('FLEXI_PRESET_CREATED_OK'), 'message');
+		$app->redirect('index.php?option=com_flexicontent&view=protheme&layout=edit&id=' . $id);
+	}
+
+	// -------------------------------------------------------------------------
+	// Delete — bypass Joomla's trash-first workflow (no trash UI for themes).
+	// -------------------------------------------------------------------------
+
+	public function remove()
+	{
+		$app = Factory::getApplication();
+		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+
+		$cids = (array) $app->input->get('cid', [], 'array');
+		$cids = array_values(array_filter(array_map('intval', $cids)));
+
+		if (empty($cids)) {
+			$app->enqueueMessage(Text::_('JERROR_NO_ITEMS_SELECTED'), 'warning');
+			$this->setRedirect('index.php?option=com_flexicontent&view=prothemes');
+			return false;
+		}
+
+		try {
+			$db  = Factory::getDbo();
+			$ids = implode(',', $cids);
+			$db->setQuery("DELETE FROM `#__flexicontent_pro_themes` WHERE id IN ($ids)")->execute();
+			$app->enqueueMessage(Text::sprintf('JLIB_APPLICATION_N_ITEMS_DELETED', count($cids)));
+		} catch (\Throwable $e) {
+			$app->enqueueMessage($e->getMessage(), 'error');
+		}
+
+		$this->setRedirect('index.php?option=com_flexicontent&view=prothemes');
+		return true;
+	}
+
 	public function getModel($name = 'protheme', $prefix = '', $config = [])
 	{
 		$name = strtolower($name);

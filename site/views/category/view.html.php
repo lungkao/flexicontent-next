@@ -1128,8 +1128,18 @@ class FlexicontentViewCategory extends \Joomla\CMS\MVC\View\HtmlView
 		// Renderer runs in 'category' context: no <h1> emitted (the
 		// category view owns the page H1 via legacy template / system),
 		// section headings start at <h2>.
+		//
+		// Whitelist guard: Pro Templates adapts a single category into an
+		// item-shape source (title/introtext/image). That only makes sense
+		// for the default single-category render. Multi-source list layouts
+		// — 'mcats' (multi-cats), 'tags', 'favs', 'author', 'myitems' —
+		// have no single $this->category with usable fields, so the
+		// renderer would emit empty output and short-circuit the legacy
+		// fallback. Default-deny: only fire for empty or 'category' layout.
 		$_proLayout = null;
-		if (is_file(JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Resolver.php')
+		$_proUrlLayout = $jinput->getCmd('layout', '');
+		if (in_array($_proUrlLayout, ['', 'category'], true)
+			&& is_file(JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Resolver.php')
 			&& is_file(JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Renderer.php'))
 		{
 			require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Resolver.php';

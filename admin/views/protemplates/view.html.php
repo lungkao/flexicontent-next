@@ -21,19 +21,23 @@ require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemp
 JLoader::register('FlexicontentViewBaseRecords', JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/base/view_records.php');
 
 /**
- * Pro Templates — List View
+ * Pro Templates — List View.
+ *
+ * Wires filter dropdowns (scope / type / category / assignment / state),
+ * stat strip data, and a "Create from preset" toolbar button that takes
+ * the user to the chooser screen instead of dropping them into an empty
+ * builder.
  */
 #[AllowDynamicProperties]
 class FlexicontentViewProtemplates extends FlexicontentViewBaseRecords
 {
-	/** @var array $rows */
-	public mixed $rows = null;
-	/** @var object $pagination */
-	public mixed $pagination = null;
-	/** @var object $state */
-	public mixed $state = null;
-	/** @var array $lists */
-	public mixed $lists = null;
+	public mixed $rows        = null;
+	public mixed $pagination  = null;
+	public mixed $state       = null;
+	public mixed $lists       = null;
+	public mixed $stats       = null;
+	public mixed $typeOptions = null;
+	public mixed $catOptions  = null;
 
 	var $title_propname = 'title';
 	var $state_propname = 'state';
@@ -42,12 +46,8 @@ class FlexicontentViewProtemplates extends FlexicontentViewBaseRecords
 
 	public function display($tpl = null)
 	{
-		$app      = Factory::getApplication();
-		$jinput   = $app->input;
-		$document = Factory::getDocument();
-		$user     = Factory::getUser();
+		$app = Factory::getApplication();
 
-		// Gate: Pro license
 		if (!FlexicontentProLicenseManager::isLicensed()) {
 			$app->enqueueMessage(Text::_('FLEXI_PROTEMPLATE_LICENSE_REQUIRED'), 'error');
 			$app->redirect('index.php?option=com_flexicontent');
@@ -57,15 +57,19 @@ class FlexicontentViewProtemplates extends FlexicontentViewBaseRecords
 		/** @var FlexicontentModelProtemplates $model */
 		$model = $this->getModel();
 
-		$this->rows       = $model->getData();
-		$this->pagination = $model->getPagination();
-		$this->state      = $model->getState();
+		$this->rows        = $model->getData();
+		$this->pagination  = $model->getPagination();
+		$this->state       = $model->getState();
+		$this->stats       = $model->getStats();
+		$this->typeOptions = $model->getTypeOptions();
+		$this->catOptions  = $model->getCategoryOptions();
 
-		// Build filter lists
+		$this->lists = [];
+
 		$this->lists['state_filter'] = HTMLHelper::_(
 			'select.genericlist',
 			[
-				HTMLHelper::_('select.option', '', Text::_('JOPTION_SELECT_PUBLISHED')),
+				HTMLHelper::_('select.option', '',  Text::_('JOPTION_SELECT_PUBLISHED')),
 				HTMLHelper::_('select.option', '1', Text::_('JPUBLISHED')),
 				HTMLHelper::_('select.option', '0', Text::_('JUNPUBLISHED')),
 			],
@@ -75,12 +79,71 @@ class FlexicontentViewProtemplates extends FlexicontentViewBaseRecords
 			$this->state->get('filter.state', '')
 		);
 
+		$this->lists['view_scope_filter'] = HTMLHelper::_(
+			'select.genericlist',
+			[
+				HTMLHelper::_('select.option', '',         Text::_('FLEXI_PROTEMPLATE_FILTER_SCOPE_ANY')),
+				HTMLHelper::_('select.option', 'item',     Text::_('FLEXI_PROTEMPLATE_VIEW_SCOPE_ITEM')),
+				HTMLHelper::_('select.option', 'category', Text::_('FLEXI_PROTEMPLATE_VIEW_SCOPE_CATEGORY')),
+			],
+			'filter_view_scope',
+			'class="form-select"',
+			'value', 'text',
+			$this->state->get('filter.view_scope', '')
+		);
+
+		$typeOpts = [HTMLHelper::_('select.option', 0, Text::_('FLEXI_PROTEMPLATE_FILTER_TYPE_ANY'))];
+		foreach ($this->typeOptions as $t) {
+			$typeOpts[] = HTMLHelper::_('select.option', (int) $t->id, $t->title);
+		}
+		$this->lists['type_filter'] = HTMLHelper::_(
+			'select.genericlist',
+			$typeOpts,
+			'filter_type_id',
+			'class="form-select"',
+			'value', 'text',
+			(int) $this->state->get('filter.type_id', 0)
+		);
+
+		$catOpts = [HTMLHelper::_('select.option', 0, Text::_('FLEXI_PROTEMPLATE_FILTER_CAT_ANY'))];
+		foreach ($this->catOptions as $c) {
+			$catOpts[] = HTMLHelper::_('select.option', (int) $c->id, $c->title);
+		}
+		$this->lists['cat_filter'] = HTMLHelper::_(
+			'select.genericlist',
+			$catOpts,
+			'filter_catid',
+			'class="form-select"',
+			'value', 'text',
+			(int) $this->state->get('filter.catid', 0)
+		);
+
+		$this->lists['assignment_filter'] = HTMLHelper::_(
+			'select.genericlist',
+			[
+				HTMLHelper::_('select.option', '',         Text::_('FLEXI_PROTEMPLATE_FILTER_ASSIGN_ANY')),
+				HTMLHelper::_('select.option', 'global',   Text::_('FLEXI_PROTEMPLATE_ASSIGN_GLOBAL')),
+				HTMLHelper::_('select.option', 'type',     Text::_('FLEXI_PROTEMPLATE_ASSIGN_TYPE')),
+				HTMLHelper::_('select.option', 'category', Text::_('FLEXI_PROTEMPLATE_ASSIGN_CATEGORY')),
+				HTMLHelper::_('select.option', 'item',     Text::_('FLEXI_PROTEMPLATE_ASSIGN_ITEM')),
+				HTMLHelper::_('select.option', 'menu',     Text::_('FLEXI_PROTEMPLATE_ASSIGN_MENU')),
+			],
+			'filter_assignment_type',
+			'class="form-select"',
+			'value', 'text',
+			$this->state->get('filter.assignment_type', '')
+		);
+
 		// Toolbar
 		ToolbarHelper::title(
 			'<span class="fc-pro-badge">⭐</span> ' . Text::_('FLEXI_PROTEMPLATE_MANAGER'),
 			'stack'
 		);
-		ToolbarHelper::addNew('protemplates.add');
+
+		// Primary CTA lives on the stat-strip in the list template — keep
+		// the toolbar focused on bulk operations against selected rows so
+		// it doesn't render a half-styled link next to the row actions.
+
 		ToolbarHelper::editList('protemplates.edit');
 		ToolbarHelper::divider();
 		ToolbarHelper::publishList('protemplates.publish');

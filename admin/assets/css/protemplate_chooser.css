@@ -1,0 +1,570 @@
+/*!
+ * FLEXIcontent — Pro Templates Chooser + List styles
+ *
+ * Accessibility:
+ *   - Focus rings >= 3:1 against adjacent surfaces (WCAG 1.4.11)
+ *   - Selected vs focused card states are visually distinguishable
+ *   - Respects prefers-reduced-motion: transitions disabled
+ *   - Visually-hidden helper preserves keyboard focus (clip pattern)
+ *   - forced-colors mode: switches to system colors
+ */
+
+:root {
+	--fcpt-accent:        #2563eb;
+	--fcpt-accent-2:      #1d4ed8;
+	--fcpt-text:          #0f172a;
+	--fcpt-text-muted:    #475569;
+	--fcpt-surface:       #ffffff;
+	--fcpt-surface-2:     #f8fafc;
+	--fcpt-border:        #cbd5e1;
+	--fcpt-border-strong: #64748b;
+	--fcpt-radius:        12px;
+	--fcpt-radius-sm:     6px;
+	--fcpt-focus:         #1d4ed8;
+	--fcpt-success:       #16a34a;
+	--fcpt-danger:        #b91c1c;
+	--fcpt-info-bg:       #e0e7ff;
+	--fcpt-info-fg:       #1e1b4b;
+}
+
+/* Visually-hidden helper (preserves keyboard focus via clip) */
+.fcpt-vh {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	white-space: nowrap !important;
+	border: 0 !important;
+}
+
+[x-cloak] { display: none !important; }
+
+/* ── Chooser shell ───────────────────────────────────────────────── */
+.fcpt-chooser-shell {
+	max-width: 1180px;
+	margin: 1rem auto;
+	padding: 0 1rem;
+}
+
+.fcpt-chooser-header {
+	margin-bottom: 1.75rem;
+}
+
+.fcpt-chooser-h1 {
+	font-size: clamp(1.5rem, 2.5vw, 2rem);
+	font-weight: 700;
+	color: var(--fcpt-text);
+	margin: 0 0 0.5rem;
+	letter-spacing: -0.01em;
+	outline: none;
+}
+
+.fcpt-chooser-h1:focus-visible {
+	outline: 3px solid var(--fcpt-focus);
+	outline-offset: 4px;
+	border-radius: 4px;
+}
+
+.fcpt-chooser-sub {
+	color: var(--fcpt-text-muted);
+	font-size: 1rem;
+	max-width: 60ch;
+	margin: 0;
+	line-height: 1.55;
+}
+
+.fcpt-back-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	font-size: 0.9rem;
+	color: var(--fcpt-text-muted);
+	text-decoration: none;
+	padding: 0.5rem 0;
+	margin-bottom: 0.5rem;
+	min-height: 32px;
+	border-radius: 4px;
+}
+
+.fcpt-back-link:hover,
+.fcpt-back-link:focus-visible {
+	color: var(--fcpt-accent-2);
+	text-decoration: underline;
+}
+
+.fcpt-back-link:focus-visible {
+	outline: 3px solid var(--fcpt-focus);
+	outline-offset: 3px;
+}
+
+/* ── Step 1: scope picker ───────────────────────────────────────── */
+.fcpt-scope-picker {
+	border: 0;
+	padding: 0;
+	margin: 0 0 1.5rem;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 1.25rem;
+}
+
+.fcpt-scope-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	padding: 1.5rem;
+	background: var(--fcpt-surface);
+	border: 2px solid var(--fcpt-border);
+	border-radius: var(--fcpt-radius);
+	cursor: pointer;
+	transition: border-color 150ms, box-shadow 150ms, transform 150ms;
+}
+
+.fcpt-scope-card:hover {
+	border-color: var(--fcpt-accent);
+	transform: translateY(-2px);
+	box-shadow: 0 6px 24px -8px rgba(37, 99, 235, 0.25);
+}
+
+.fcpt-scope-card:has(input:checked) {
+	border-color: var(--fcpt-accent);
+	background: linear-gradient(180deg, #eff6ff 0%, var(--fcpt-surface) 60%);
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.fcpt-scope-card:has(input:focus-visible) {
+	outline: 3px solid var(--fcpt-focus);
+	outline-offset: 3px;
+}
+
+.fcpt-scope-illust { display: block; border-radius: var(--fcpt-radius-sm); overflow: hidden; }
+.fcpt-scope-illust svg { display: block; width: 100%; height: auto; }
+
+.fcpt-scope-name {
+	font-size: 1.125rem;
+	font-weight: 700;
+	color: var(--fcpt-text);
+	margin-top: 0.5rem;
+}
+
+.fcpt-scope-desc {
+	color: var(--fcpt-text-muted);
+	font-size: 0.92rem;
+	line-height: 1.5;
+}
+
+.fcpt-scope-meta {
+	font-size: 0.82rem;
+	color: var(--fcpt-text-muted);
+	margin-top: auto;
+	padding-top: 0.5rem;
+	border-top: 1px dashed var(--fcpt-border);
+}
+
+.fcpt-chooser-actions {
+	display: flex;
+	gap: 0.75rem;
+	justify-content: flex-end;
+	align-items: center;
+	padding-top: 1rem;
+	border-top: 1px solid var(--fcpt-border);
+}
+
+.fcpt-continue-btn { min-width: 12rem; }
+.fcpt-cancel-link  { color: var(--fcpt-text-muted); }
+
+/* ── Step 2: preset gallery ─────────────────────────────────────── */
+.fcpt-form-row {
+	margin-bottom: 1.25rem;
+	max-width: 560px;
+}
+
+.fcpt-form-label {
+	font-weight: 600;
+	color: var(--fcpt-text);
+	margin-bottom: 0.25rem;
+	display: block;
+}
+
+.fcpt-form-input { font-size: 1rem; padding: 0.6rem 0.8rem; }
+
+.fcpt-form-help {
+	font-size: 0.85rem;
+	color: var(--fcpt-text-muted);
+	margin: 0.35rem 0 0;
+}
+
+.fcpt-filter-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 0.5rem 0 1.25rem;
+	padding: 0.5rem;
+	background: var(--fcpt-surface-2);
+	border-radius: var(--fcpt-radius);
+}
+
+.fcpt-filter-label {
+	font-size: 0.85rem;
+	color: var(--fcpt-text-muted);
+	margin-right: 0.5rem;
+}
+
+.fcpt-filter-chip {
+	background: var(--fcpt-surface);
+	border: 1px solid var(--fcpt-border-strong);
+	color: var(--fcpt-text);
+	padding: 0.4rem 0.85rem;
+	border-radius: 999px;
+	font-size: 0.88rem;
+	cursor: pointer;
+	transition: background 120ms, border-color 120ms;
+	min-height: 32px;
+}
+
+.fcpt-filter-chip:hover {
+	background: #eff6ff;
+	border-color: var(--fcpt-accent);
+}
+
+.fcpt-filter-chip:focus-visible {
+	outline: 3px solid var(--fcpt-focus);
+	outline-offset: 2px;
+}
+
+.fcpt-filter-chip.is-active {
+	background: var(--fcpt-accent);
+	border-color: var(--fcpt-accent-2);
+	color: #ffffff;
+}
+
+.fcpt-preset-grid {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 1.25rem;
+}
+
+.fcpt-preset-cell { display: flex; }
+
+.fcpt-preset-card {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	text-align: left;
+	padding: 1rem 1rem 1.1rem;
+	background: var(--fcpt-surface);
+	border: 2px solid var(--fcpt-border);
+	border-radius: var(--fcpt-radius);
+	cursor: pointer;
+	color: inherit;
+	font: inherit;
+	position: relative;
+	transition: border-color 150ms, transform 150ms, box-shadow 150ms;
+}
+
+.fcpt-preset-card:hover {
+	border-color: var(--fcpt-accent);
+	transform: translateY(-3px);
+	box-shadow: 0 12px 28px -10px rgba(37, 99, 235, 0.28);
+}
+
+.fcpt-preset-card:focus-visible {
+	outline: 3px solid var(--fcpt-focus);
+	outline-offset: 3px;
+}
+
+.fcpt-preset-card.is-blank {
+	border-style: dashed;
+	background: var(--fcpt-surface-2);
+}
+
+.fcpt-preset-thumb {
+	display: block;
+	border-radius: var(--fcpt-radius-sm);
+	overflow: hidden;
+	background: var(--fcpt-surface-2);
+}
+
+.fcpt-preset-thumb svg,
+.fcpt-preset-thumb-svg { display: block; width: 100%; height: auto; }
+
+.fcpt-preset-name {
+	font-weight: 700;
+	font-size: 1rem;
+	color: var(--fcpt-text);
+	margin-top: 0.5rem;
+}
+
+.fcpt-preset-desc {
+	font-size: 0.85rem;
+	color: var(--fcpt-text-muted);
+	line-height: 1.45;
+}
+
+.fcpt-preset-group-tag {
+	position: absolute;
+	top: 0.6rem;
+	right: 0.6rem;
+	font-size: 0.7rem;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--fcpt-info-fg);
+	background: var(--fcpt-info-bg);
+	padding: 0.15rem 0.5rem;
+	border-radius: 999px;
+}
+
+.fcpt-empty-state {
+	padding: 2rem 1rem;
+	text-align: center;
+	color: var(--fcpt-text-muted);
+}
+
+.fcpt-empty-state-inline {
+	padding: 1rem;
+	color: var(--fcpt-text);
+}
+
+.fcpt-empty-state-inline h3 {
+	font-size: 1.15rem;
+	font-weight: 700;
+	margin: 0 0 0.5rem;
+}
+
+.fcpt-empty-state-inline p {
+	color: var(--fcpt-text-muted);
+	margin: 0 0 1rem;
+}
+
+/* ── List page: stat strip ───────────────────────────────────────── */
+.fcpt-stats {
+	margin: 0.5rem 0 1.25rem;
+}
+
+.fcpt-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 0.85rem;
+	margin: 0 0 1rem;
+}
+
+.fcpt-stat-card {
+	background: var(--fcpt-surface);
+	border: 1px solid var(--fcpt-border);
+	border-left: 4px solid var(--fcpt-accent);
+	border-radius: var(--fcpt-radius-sm);
+	padding: 0.85rem 1rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+}
+
+.fcpt-stat-card.is-item       { border-left-color: #0ea5e9; }
+.fcpt-stat-card.is-category   { border-left-color: #8b5cf6; }
+.fcpt-stat-card.is-published  { border-left-color: var(--fcpt-success); }
+.fcpt-stat-card.is-draft      { border-left-color: #b45309; }
+
+.fcpt-stat-card dt {
+	font-size: 0.82rem;
+	color: var(--fcpt-text-muted);
+	font-weight: 500;
+}
+
+.fcpt-stat-card dd {
+	margin: 0;
+	font-size: 1.75rem;
+	font-weight: 700;
+	color: var(--fcpt-text);
+	line-height: 1.1;
+}
+
+.fcpt-stats-cta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+}
+
+.fcpt-theme-intro {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1.5rem;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1.25rem 1.5rem;
+	background: linear-gradient(135deg, #eff6ff 0%, #faf5ff 100%);
+	border: 1px solid var(--fcpt-border);
+	border-radius: var(--fcpt-radius);
+	margin-bottom: 1.25rem;
+}
+
+.fcpt-kicker {
+	margin: 0;
+	font-size: 0.78rem;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--fcpt-accent-2);
+	font-weight: 600;
+}
+
+.fcpt-stats-headline {
+	font-size: 1.4rem;
+	margin: 0.25rem 0 0.25rem;
+	color: var(--fcpt-text);
+}
+
+.fcpt-stats-blurb {
+	color: var(--fcpt-text-muted);
+	margin: 0;
+	max-width: 50ch;
+	line-height: 1.5;
+}
+
+/* ── List page: filters + chips ──────────────────────────────────── */
+.fcpt-list-form .fcpt-filters {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 0.6rem;
+	align-items: end;
+	padding: 0.85rem;
+	background: var(--fcpt-surface-2);
+	border-radius: var(--fcpt-radius);
+	margin-bottom: 0.75rem;
+}
+
+.fcpt-filter-field {
+	display: flex;
+	flex-direction: column;
+}
+
+.fcpt-filter-actions {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+	grid-column: 1 / -1;
+	justify-content: flex-end;
+}
+
+.fcpt-active-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	align-items: center;
+	margin: 0 0 0.5rem;
+}
+
+.fcpt-active-filters-label {
+	font-size: 0.85rem;
+	color: var(--fcpt-text-muted);
+	margin-right: 0.25rem;
+}
+
+.fcpt-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	background: var(--fcpt-info-bg);
+	border: 1px solid var(--fcpt-accent);
+	color: var(--fcpt-info-fg);
+	padding: 0.3rem 0.6rem 0.3rem 0.75rem;
+	border-radius: 999px;
+	font-size: 0.85rem;
+	cursor: pointer;
+	min-height: 28px;
+	transition: background 120ms;
+}
+
+.fcpt-chip:hover {
+	background: #c7d2fe;
+}
+
+.fcpt-chip:focus-visible {
+	outline: 3px solid var(--fcpt-focus);
+	outline-offset: 2px;
+}
+
+.fcpt-chip > span[aria-hidden] {
+	font-size: 1rem;
+	line-height: 1;
+	font-weight: 700;
+}
+
+.fcpt-result-count {
+	margin: 0.25rem 0 0.5rem;
+	font-size: 0.9rem;
+	color: var(--fcpt-text-muted);
+}
+
+/* ── Table scope badge ───────────────────────────────────────────── */
+.fcpt-scope-badge {
+	display: inline-block;
+	padding: 0.15rem 0.55rem;
+	border-radius: 999px;
+	font-size: 0.78rem;
+	font-weight: 600;
+	border: 1px solid currentColor;
+}
+
+.fcpt-scope-badge.fcpt-scope-item {
+	color: #0c4a6e;
+	background: #e0f2fe;
+	border-color: #0ea5e9;
+}
+
+.fcpt-scope-badge.fcpt-scope-category {
+	color: #4c1d95;
+	background: #ede9fe;
+	border-color: #8b5cf6;
+}
+
+/* ── Theme accent swatch ────────────────────────────────────────── */
+.fcpt-theme-swatch {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	vertical-align: middle;
+	border: 1px solid var(--fcpt-border-strong);
+	margin-right: 0.4rem;
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+	.fcpt-scope-card,
+	.fcpt-preset-card,
+	.fcpt-filter-chip,
+	.fcpt-chip {
+		transition: none !important;
+		transform: none !important;
+	}
+
+	.fcpt-scope-card:hover,
+	.fcpt-preset-card:hover {
+		transform: none !important;
+	}
+}
+
+/* ── Forced-colors mode ──────────────────────────────────────────── */
+@media (forced-colors: active) {
+	.fcpt-scope-card,
+	.fcpt-preset-card,
+	.fcpt-stat-card,
+	.fcpt-chip,
+	.fcpt-filter-chip {
+		border: 2px solid CanvasText;
+	}
+
+	.fcpt-scope-card:has(input:checked),
+	.fcpt-filter-chip.is-active {
+		border: 3px solid Highlight;
+		background: Canvas;
+		color: CanvasText;
+	}
+}

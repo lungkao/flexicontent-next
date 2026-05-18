@@ -378,7 +378,7 @@ CREATE TABLE IF NOT EXISTS `#__flexicontent_file_usage` (
 	KEY  `file_id` (`file_id`),
 	KEY  `context` (`context`),
 	KEY  `prop` (`prop`)
-) ENGINE=MyISAM CHARACTER SET `utf8` COLLATE `utf8_general_ci`
+) ENGINE=MyISAM CHARACTER SET `utf8` COLLATE `utf8_general_ci`;
 
 -- ---------------------------------------------------------------------------
 -- Pro Templates (v6.1.0-alpha.5)
@@ -391,6 +391,7 @@ CREATE TABLE IF NOT EXISTS `#__flexicontent_pro_layouts` (
   `catid`            INT(11)             NOT NULL DEFAULT 0,
   `assignment_type`  VARCHAR(32)         NOT NULL DEFAULT 'global',
   `assignment_value` VARCHAR(100)        NOT NULL DEFAULT '',
+  `view_scope`       VARCHAR(16)         NOT NULL DEFAULT 'item',
   `layout_data`      LONGTEXT            NULL,
   `theme_id`         INT(11)             NOT NULL DEFAULT 0,
   `state`            TINYINT(1)          NOT NULL DEFAULT 1,
@@ -403,10 +404,11 @@ CREATE TABLE IF NOT EXISTS `#__flexicontent_pro_layouts` (
   `checked_out`      INT(11)             NULL DEFAULT NULL,
   `checked_out_time` DATETIME            NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `idx_state`      (`state`),
-  KEY `idx_type_cat`   (`type_id`, `catid`),
-  KEY `idx_assignment` (`assignment_type`, `assignment_value`(50)),
-  KEY `idx_checkout`   (`checked_out`)
+  KEY `idx_state`           (`state`),
+  KEY `idx_type_cat`        (`type_id`, `catid`),
+  KEY `idx_assignment`      (`assignment_type`, `assignment_value`(50)),
+  KEY `idx_state_viewscope` (`state`, `view_scope`),
+  KEY `idx_checkout`        (`checked_out`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `#__flexicontent_pro_themes` (

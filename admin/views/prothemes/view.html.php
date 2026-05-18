@@ -62,7 +62,8 @@ class FlexicontentViewProthemes extends FlexicontentViewBaseRecords
 			'<span class="fc-pro-badge">⭐</span> ' . Text::_('FLEXI_PROTHEME_MANAGER'),
 			'paintbrush'
 		);
-		ToolbarHelper::addNew('prothemes.add');
+		// Primary CTA lives on the intro card in the list template — keep
+		// the toolbar minimal so it doesn't render a half-styled link.
 		ToolbarHelper::editList('prothemes.edit');
 		ToolbarHelper::divider();
 		ToolbarHelper::publishList('prothemes.publish');

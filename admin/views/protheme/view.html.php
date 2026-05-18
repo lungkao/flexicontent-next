@@ -19,21 +19,38 @@ use Joomla\CMS\MVC\View\HtmlView;
 require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/models/protheme.php';
 
 /**
- * Pro Theme — Editor View
+ * Pro Theme View — handles two layouts:
+ *   - default (theme editor)
+ *   - choose  (preset gallery)
  */
 #[AllowDynamicProperties]
 class FlexicontentViewProtheme extends HtmlView
 {
-	/** @var object $item */
+	/* Edit mode props */
 	public mixed $item = null;
-	/** @var \Joomla\CMS\Form\Form $form */
 	public mixed $form = null;
+
+	/* Choose mode props */
+	public mixed $presets = null;
+	public mixed $groups  = null;
 
 	public function display($tpl = null)
 	{
 		$app    = Factory::getApplication();
 		$jinput = $app->input;
-		$id     = (int) $jinput->getInt('id', 0);
+		$layout = (string) $jinput->getCmd('layout', '');
+
+		if ($layout === 'choose') {
+			$this->displayChooser($app, $jinput, $tpl);
+			return;
+		}
+
+		$this->displayEditor($app, $jinput, $tpl);
+	}
+
+	protected function displayEditor($app, $jinput, $tpl): void
+	{
+		$id = (int) $jinput->getInt('id', 0);
 
 		/** @var FlexicontentModelProtheme $model */
 		$model = new FlexicontentModelProtheme();
@@ -56,6 +73,23 @@ class FlexicontentViewProtheme extends HtmlView
 		ToolbarHelper::save('prothemes.save');
 		ToolbarHelper::cancel('prothemes.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
 
+		parent::display($tpl);
+	}
+
+	protected function displayChooser($app, $jinput, $tpl): void
+	{
+		require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/PresetLibrary.php';
+
+		$this->presets = FlexicontentProTemplatePresetLibrary::getThemePresets();
+		$this->groups  = FlexicontentProTemplatePresetLibrary::getThemeGroups();
+
+		ToolbarHelper::title(
+			'<span class="fc-pro-badge">⭐</span> ' . Text::_('FLEXI_PROTHEME_CHOOSE_PRESET_TITLE'),
+			'paintbrush'
+		);
+		ToolbarHelper::cancel('prothemes.cancel', 'JTOOLBAR_CLOSE');
+
+		$this->setLayout('choose');
 		parent::display($tpl);
 	}
 }
