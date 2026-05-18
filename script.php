@@ -467,6 +467,65 @@ class com_flexicontentInstallerScript
 		$dbprefix = $app->getCfg('dbprefix');
 		$dbname   = $app->getCfg('db');
 
+		// ──────────────────────────────────────────────────────────────
+		// Auto-restore component config from bundled snapshot, then
+		// auto-dismiss post-install messages so editors don't land on
+		// a "6 need attention" todo list after every reinstall.
+		// ──────────────────────────────────────────────────────────────
+		$cfgFile = __DIR__ . '/admin/installation/flexicontent_config.json';
+		if (is_file($cfgFile))
+		{
+			$json = file_get_contents($cfgFile);
+			if ($json !== false && json_decode($json) !== null)
+			{
+				try {
+					$currentQ = $db->getQuery(true)
+						->select($db->quoteName('params'))
+						->from($db->quoteName('#__extensions'))
+						->where($db->quoteName('element') . ' = ' . $db->quote('com_flexicontent'))
+						->where($db->quoteName('type') . ' = ' . $db->quote('component'));
+					$current = (string) $db->setQuery($currentQ)->loadResult();
+
+					// Seed only on first install OR when stored params are empty/invalid
+					$apply = ($type === 'install')
+						|| $current === ''
+						|| $current === '{}'
+						|| json_decode($current) === null;
+
+					if ($apply)
+					{
+						$db->setQuery(
+							$db->getQuery(true)
+								->update($db->quoteName('#__extensions'))
+								->set($db->quoteName('params') . ' = ' . $db->quote($json))
+								->where($db->quoteName('element') . ' = ' . $db->quote('com_flexicontent'))
+								->where($db->quoteName('type') . ' = ' . $db->quote('component'))
+						)->execute();
+					}
+				} catch (\Throwable $e) { /* non-fatal */ }
+			}
+		}
+
+		// Auto-dismiss our own post-install messages — never touch other components
+		try {
+			$extIdQ = $db->getQuery(true)
+				->select($db->quoteName('extension_id'))
+				->from($db->quoteName('#__extensions'))
+				->where($db->quoteName('element') . ' = ' . $db->quote('com_flexicontent'))
+				->where($db->quoteName('type') . ' = ' . $db->quote('component'));
+			$extId = (int) $db->setQuery($extIdQ)->loadResult();
+
+			if ($extId > 0)
+			{
+				$db->setQuery(
+					$db->getQuery(true)
+						->update($db->quoteName('#__postinstall_messages'))
+						->set($db->quoteName('enabled') . ' = 0')
+						->where($db->quoteName('extension_id') . ' = ' . $extId)
+				)->execute();
+			}
+		} catch (\Throwable $e) { /* non-fatal — table may not exist on older Joomla */ }
+
 		/*
 		// always create or modify these parameters
 		$params['my_param0'] = 'Component version ' . $this->release;

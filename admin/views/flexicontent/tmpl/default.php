@@ -147,7 +147,6 @@ $items_task = 'task=items.';
 			$_title .= ' - <span class="badge bg-success badge-success">OK</span>';
 		?>
 
-		<?php if ($this->dopostinstall && $config_saved) : ?>
 		<div id="fc-dash-hero" class="fc-dash-hero">
 			<div class="fc-dash-hero-bg" aria-hidden="true"></div>
 			<div class="fc-dash-hero-content">
@@ -196,7 +195,6 @@ $items_task = 'task=items.';
 			</div>
 			<?php endforeach; ?>
 		</section>
-		<?php endif; ?>
 
 		<div id="fc-dash-boardbtns">
 		<?php
@@ -530,25 +528,52 @@ $items_task = 'task=items.';
 		<?php
 		if ( $this->params->get('show_updatecheck', 1) && $this->perms->CanConfig )
 		{
+			$updatecheck_url  = 'index.php?option=com_flexicontent&task=flexicontent.fcversioncompare&format=raw&'. \Joomla\CMS\Session\Session::getFormToken() .'=1';
+			$updatecheck_chk  = \Joomla\CMS\Language\Text::_('FLEXI_UPDATE_CHECK_CHECKING');
+			$updatecheck_fail = \Joomla\CMS\Language\Text::_('FLEXI_UPDATE_CHECK_FAILED');
+			$updatecheck_retry = \Joomla\CMS\Language\Text::_('FLEXI_UPDATE_CHECK_RETRY');
 			$this->document->addScriptDeclaration("
-			jQuery(document).ready(function () {
-				if(jQuery.trim(jQuery('#displayfversion').html())=='') {
-					jQuery('#displayfversion').html('<p><img src=\"components/com_flexicontent/assets/images/ajax-loader.gif\" style=\"vertical-align: middle;\"><\/p>');
-					jQuery.ajax({
-						url: 'index.php?option=com_flexicontent&task=flexicontent.fcversioncompare&format=raw&". \Joomla\CMS\Session\Session::getFormToken() ."=1',
-						success: function(str) {
-							jQuery('#displayfversion').html(str);
-							jQuery('#displayfversion').parent().css('height', 'auto');
-						}
+			(function(\$){
+				var url = '" . $updatecheck_url . "';
+				var loadingTpl = '<div class=\"fc-update-check fc-update-check--loading\" role=\"status\" aria-live=\"polite\">'
+					+ '<span class=\"fc-update-spinner\" aria-hidden=\"true\"></span>'
+					+ '<span class=\"fc-update-msg-text\">" . $updatecheck_chk . "</span>'
+					+ '</div>';
+				var failureTpl = '<div class=\"fc-update-check fc-update-check--error\" role=\"status\">'
+					+ '<span class=\"fc-update-icon icon-warning\" aria-hidden=\"true\"></span>'
+					+ '<div class=\"fc-update-msg\">'
+					+ '<p class=\"fc-update-msg-text\">" . $updatecheck_fail . "</p>'
+					+ '<button type=\"button\" class=\"fc-update-retry\" data-fc-update-retry>'
+					+ '<span class=\"icon-loop\" aria-hidden=\"true\"></span> " . $updatecheck_retry . "'
+					+ '</button>'
+					+ '</div></div>';
+				function runCheck() {
+					var \$box = \$('#displayfversion');
+					\$box.attr('aria-busy', 'true').html(loadingTpl);
+					\$.ajax({
+						url: url,
+						timeout: 10000
+					}).done(function(str){
+						\$box.attr('aria-busy', 'false').html(str);
+						\$box.parent().css('height', 'auto');
+					}).fail(function(){
+						\$box.attr('aria-busy', 'false').html(failureTpl);
 					});
 				}
-			});
+				\$(function(){
+					if (\$.trim(\$('#displayfversion').html()) === '') { runCheck(); }
+					\$(document).on('click', '[data-fc-update-retry]', function(e){
+						e.preventDefault();
+						runCheck();
+					});
+				});
+			})(jQuery);
 			");
 			echo '
 			<section class="fc-board-set fc-board-set--wide" aria-labelledby="fc-board-updatecheck">
 				<h2 id="fc-board-updatecheck" class="fc-board-header">'.\Joomla\CMS\Language\Text::_( 'FLEXI_UPDATE_CHECK' ).'</h2>
 				<div class="fc-board-set-inner">
-					<div id="displayfversion" style="float: left;"></div>
+					<div id="displayfversion" aria-busy="true"></div>
 				</div>
 			</section>
 			';
@@ -562,12 +587,20 @@ $items_task = 'task=items.';
 		<?php
 		if (!$this->dopostinstall || !$this->allplgpublish) :
 
-			// Make sure POST-INSTALLATION Task slider is open
-			echo \Joomla\CMS\HTML\HTMLHelper::_('bootstrap.startAccordion', 'fc-dash-sliders', array('active' => 'fc-dash-sliders-postinstall'));
+			$postinstall_html  = $this->loadTemplate('postinstall');
+			$postinstall_total = max(1, substr_count($postinstall_html, 'install-ok') + substr_count($postinstall_html, 'install-notok'));
+			$postinstall_fail  = substr_count($postinstall_html, 'install-notok');
+			$postinstall_done  = $postinstall_total - $postinstall_fail;
+			$summary_html = '<span class="fc-slide-summary' . ($postinstall_fail > 0 ? ' fc-slide-summary--warn' : ' fc-slide-summary--ok') . '">'
+				. ($postinstall_fail > 0 ? '<span class="icon-warning" aria-hidden="true"></span> ' : '<span class="icon-checkmark" aria-hidden="true"></span> ')
+				. \Joomla\CMS\Language\Text::sprintf('FLEXI_POSTINSTALL_SUMMARY', (int) $postinstall_done, (int) $postinstall_total, (int) $postinstall_fail)
+				. '</span>';
+			$title = \Joomla\CMS\Language\Text::_( 'FLEXI_POST_INSTALL' ) . ' ' . $summary_html;
 
-			$title = \Joomla\CMS\Language\Text::_( 'FLEXI_POST_INSTALL' );
+			$accordion_active = $postinstall_fail > 0 ? 'fc-dash-sliders-postinstall' : '';
+			echo \Joomla\CMS\HTML\HTMLHelper::_('bootstrap.startAccordion', 'fc-dash-sliders', array('active' => $accordion_active));
 			echo \Joomla\CMS\HTML\HTMLHelper::_('bootstrap.addSlide', 'fc-dash-sliders', $title, 'fc-dash-sliders-postinstall' );
-			echo $this->loadTemplate('postinstall');
+			echo $postinstall_html;
 			echo \Joomla\CMS\HTML\HTMLHelper::_('bootstrap.endSlide');
 
 			echo \Joomla\CMS\HTML\HTMLHelper::_('bootstrap.endAccordion');

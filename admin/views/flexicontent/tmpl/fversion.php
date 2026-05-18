@@ -21,11 +21,15 @@ $app = \Joomla\CMS\Factory::getApplication();
 $template	= $app->getTemplate();
 if ($this->check['connect'] == 0) :
 ?>
-	<div class="fc-update-check fc-update-check--error" role="alert">
+	<div class="fc-update-check fc-update-check--error" role="status">
 		<span class="fc-update-icon icon-warning" aria-hidden="true"></span>
 		<div class="fc-update-msg">
 			<p class="fc-update-msg-title"><?php echo \Joomla\CMS\Language\Text::_('FLEXI_VERSION'); ?></p>
 			<p class="fc-update-msg-text"><?php echo \Joomla\CMS\Language\Text::_('FLEXI_CONNECTION_FAILED'); ?></p>
+			<button type="button" class="fc-update-retry" data-fc-update-retry>
+				<span class="icon-loop" aria-hidden="true"></span>
+				<?php echo \Joomla\CMS\Language\Text::_('FLEXI_UPDATE_CHECK_RETRY'); ?>
+			</button>
 		</div>
 	</div>
 <?php
