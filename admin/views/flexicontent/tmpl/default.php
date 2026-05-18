@@ -86,8 +86,6 @@ $items_task = 'task=items.';
 
 <div id="flexicontent" class="flexicontent">
 
-<h1 class="visually-hidden"><?php echo \Joomla\CMS\Language\Text::_('FLEXI_CONTROL_PANEL'); ?></h1>
-
 <form action="index.php" method="post" name="adminForm" id="adminForm">
 
 <div class="<?php echo FLEXI_J40GE ? 'row' : 'row-fluid'; ?>">
@@ -148,6 +146,57 @@ $items_task = 'task=items.';
 		else
 			$_title .= ' - <span class="badge bg-success badge-success">OK</span>';
 		?>
+
+		<?php if ($this->dopostinstall && $config_saved) : ?>
+		<div id="fc-dash-hero" class="fc-dash-hero">
+			<div class="fc-dash-hero-bg" aria-hidden="true"></div>
+			<div class="fc-dash-hero-content">
+				<p class="fc-dash-hero-eyebrow">FLEXIcontent <?php echo FLEXI_VERSION; ?> <?php echo FLEXI_RELEASE; ?></p>
+				<h1 class="fc-dash-hero-title"><?php echo \Joomla\CMS\Language\Text::sprintf('FLEXI_DASHBOARD_WELCOME', htmlspecialchars($user->name, ENT_QUOTES, 'UTF-8')); ?></h1>
+				<p class="fc-dash-hero-sub"><?php echo \Joomla\CMS\Language\Text::_('FLEXI_DASHBOARD_TAGLINE'); ?></p>
+			</div>
+			<div class="fc-dash-hero-actions">
+				<?php
+				$cta_new_item = 'index.php?option=com_flexicontent&view=types&tmpl=component&layout=typeslist&action=new';
+				$cta_new_cat  = 'index.php?option=com_flexicontent&view=category';
+				?>
+				<a class="fc-hero-cta fc-hero-cta--primary" href="<?php echo $cta_new_item; ?>" onclick="var url = jQuery(this).attr('href'); fc_showDialog(url, 'fc_modal_popup_container', 0, 0, 0, false, {title: '<?php echo flexicontent_html::encodeHTML(\Joomla\CMS\Language\Text::_('FLEXI_NEW_ITEM'), 2); ?>'}); return false;">
+					<span class="fc-hero-cta-icon icon-plus" aria-hidden="true"></span>
+					<span><?php echo \Joomla\CMS\Language\Text::_('FLEXI_NEW_ITEM'); ?></span>
+				</a>
+				<a class="fc-hero-cta" href="<?php echo $cta_new_cat; ?>">
+					<span class="fc-hero-cta-icon icon-folder-plus" aria-hidden="true"></span>
+					<span><?php echo \Joomla\CMS\Language\Text::_('FLEXI_NEW_CATEGORY'); ?></span>
+				</a>
+			</div>
+		</div>
+
+		<?php
+		$kpi_tiles = array(
+			array('label' => \Joomla\CMS\Language\Text::_('FLEXI_PENDING_SLIDER'),     'count' => (int) $this->totalrows['pending'],    'state' => 'PE', 'icon' => 'icon-clock',  'tone' => 'warn'),
+			array('label' => \Joomla\CMS\Language\Text::_('FLEXI_REVISED_VER_SLIDER'), 'count' => (int) $this->totalrows['revised'],    'state' => 'RV', 'icon' => 'icon-pencil', 'tone' => 'info'),
+			array('label' => \Joomla\CMS\Language\Text::_('FLEXI_IN_PROGRESS_SLIDER'), 'count' => (int) $this->totalrows['inprogress'], 'state' => 'IP', 'icon' => 'icon-loop',   'tone' => 'progress'),
+			array('label' => \Joomla\CMS\Language\Text::_('FLEXI_DRAFT_SLIDER'),       'count' => (int) $this->totalrows['draft'],      'state' => 'OQ', 'icon' => 'icon-file',   'tone' => 'muted'),
+		);
+		$show_all_txt = \Joomla\CMS\Language\Text::_('FLEXI_SHOW_ALL');
+		?>
+		<section id="fc-dash-kpi" class="fc-dash-kpi" aria-label="<?php echo htmlspecialchars(\Joomla\CMS\Language\Text::_('FLEXI_CONTENT_STATS'), ENT_QUOTES, 'UTF-8'); ?>">
+			<h2 class="visually-hidden"><?php echo \Joomla\CMS\Language\Text::_('FLEXI_CONTENT_STATS'); ?></h2>
+			<?php foreach ($kpi_tiles as $tile) :
+				$url  = 'index.php?option=com_flexicontent&view=items&filter_state=' . $tile['state'];
+				$aria = $tile['label'] . ' — ' . $show_all_txt;
+			?>
+			<div class="fc-kpi-tile fc-kpi-tile--<?php echo $tile['tone']; ?>">
+				<span class="fc-kpi-icon <?php echo $tile['icon']; ?>" aria-hidden="true"></span>
+				<span class="fc-kpi-label"><?php echo $tile['label']; ?></span>
+				<span class="fc-kpi-value"><?php echo $tile['count']; ?></span>
+				<a class="fc-kpi-link" href="<?php echo $url; ?>" aria-label="<?php echo htmlspecialchars($aria, ENT_QUOTES, 'UTF-8'); ?>">
+					<?php echo $show_all_txt; ?> <span aria-hidden="true">→</span>
+				</a>
+			</div>
+			<?php endforeach; ?>
+		</section>
+		<?php endif; ?>
 
 		<div id="fc-dash-boardbtns">
 		<?php
