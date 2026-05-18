@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" version="4.0" group="system" method="upgrade">
+	<name>PLG_SYSTEM_FLEXICONTENTADMINHELPER</name>
+	<author>FLEXIcontent team</author>
+	<creationDate>2026-05</creationDate>
+	<copyright>Copyright (C) FLEXIcontent team</copyright>
+	<license>GNU/GPL v2</license>
+	<authorEmail>support@flexicontent.org</authorEmail>
+	<authorUrl>https://flexicontent.org</authorUrl>
+	<version>1.0.0</version>
+	<description>PLG_SYSTEM_FLEXICONTENTADMINHELPER_DESC</description>
+
+	<files>
+		<filename plugin="flexicontentadminhelper">flexicontentadminhelper.php</filename>
+		<filename>index.html</filename>
+		<folder>assets</folder>
+		<folder>language</folder>
+	</files>
+
+	<languages>
+		<language tag="en-GB">language/en-GB/en-GB.plg_system_flexicontentadminhelper.ini</language>
+	</languages>
+
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<field name="enabled_contexts"
+					type="checkboxes"
+					default="com_flexicontent,com_modules,com_config,com_plugins"
+					label="PLG_SYSTEM_FLEXICONTENTADMINHELPER_CONTEXTS_LABEL"
+					description="PLG_SYSTEM_FLEXICONTENTADMINHELPER_CONTEXTS_DESC">
+					<option value="com_flexicontent">com_flexicontent</option>
+					<option value="com_modules">com_modules (FC modules)</option>
+					<option value="com_config">com_config (FC component options)</option>
+					<option value="com_plugins">com_plugins (FC plugins)</option>
+				</field>
+
+				<field name="min_chars"
+					type="number"
+					default="2"
+					min="1"
+					max="5"
+					label="PLG_SYSTEM_FLEXICONTENTADMINHELPER_MIN_CHARS_LABEL"
+					description="PLG_SYSTEM_FLEXICONTENTADMINHELPER_MIN_CHARS_DESC" />
+			</fieldset>
+		</fields>
+	</config>
+</extension>
