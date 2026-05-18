@@ -84,12 +84,14 @@ class ViewScopeTest extends TestCase
 		$this->assertSame('item',   (string) $field['default']);
 	}
 
-	public function testCatidQueryFiltersOnContentExtension(): void
+	public function testCatidFieldRendersComContentCategoryTree(): void
 	{
-		// Joomla content categories used by FlexiContent live under
-		// extension='com_content'. A previous revision filtered on
-		// 'com_flexicontent' which returns zero rows, so the Category
-		// dropdown was unselectable.
+		// Category restrict uses Joomla's built-in <field type="category"
+		// extension="com_content"> so the dropdown renders the full
+		// parent/child hierarchy with indent — flat type="sql" queries
+		// lose that structure. extension must be com_content (FlexiContent
+		// reuses Joomla content categories) and a "0 = All categories"
+		// option must precede the tree.
 		$xml = dirname(__DIR__, 3) . '/admin/forms/protemplate.xml';
 		$this->assertFileExists($xml);
 		$doc = simplexml_load_file($xml);
@@ -98,11 +100,13 @@ class ViewScopeTest extends TestCase
 		$nodes = $doc->xpath('//field[@name="catid"]');
 		$this->assertNotEmpty($nodes, 'catid field must exist in protemplate.xml');
 
-		$query = (string) $nodes[0]['query'];
-		$this->assertStringContainsString("extension='com_content'", $query,
-			'catid query must filter on com_content (Joomla content categories)');
-		$this->assertStringNotContainsString("extension='com_flexicontent'", $query,
-			"catid query must not filter on com_flexicontent");
+		$field = $nodes[0];
+		$this->assertSame('category',    (string) $field['type']);
+		$this->assertSame('com_content', (string) $field['extension']);
+
+		$opts = $field->xpath('option');
+		$this->assertNotEmpty($opts, 'catid must declare a "0 = All" sentinel option before the tree');
+		$this->assertSame('0', (string) $opts[0]['value']);
 	}
 
 	public function testStarterLayoutShapeIsContentDriven(): void

@@ -33,17 +33,17 @@
 
 		<field
 			name="catid"
-			type="sql"
+			type="category"
+			extension="com_content"
 			label="FLEXI_CATEGORY"
 			description="FLEXI_PROTEMPLATE_CATID_DESC"
-			query="SELECT id, title FROM #__categories WHERE extension='com_content' AND published=1 ORDER BY title"
-			key_field="id"
-			value_field="title"
+			published="0,1"
+			show_root="false"
 			default="0"
-			first_option="FLEXI_PROTEMPLATE_ALL_CATS"
-			first_hasnt_key="true"
 			class="form-select"
-		/>
+		>
+			<option value="0">FLEXI_PROTEMPLATE_ALL_CATS</option>
+		</field>
 
 		<!--
 			view_scope: locked by the chooser screen on create. Hidden in the
