@@ -316,6 +316,11 @@
   color: var(--fcpt-accent);
 }
 
+/* Hide Alpine-controlled regions until Alpine.js (deferred CDN) has booted.
+   Without this, the modal backdrop renders open for ~200ms after page load,
+   which we get a confused "what is this popup?" report about. */
+[x-cloak] { display: none !important; }
+
 /* ── Element Picker Modal ────────────────────────────────────────────────────── */
 .fcpt-modal-backdrop {
   position: fixed;

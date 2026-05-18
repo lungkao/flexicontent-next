@@ -9,7 +9,7 @@
 	<copyright>(C) 2009-2022 Emmanuel Danan, Georgios Papadakis</copyright>
 	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
 	<!--  The version string is recorded in the components table -->
-	<version>6.1.0-beta.4</version>
+	<version>6.1.0-beta.5</version>
 	<!-- Performance: .min.css and .min.js files included for production -->
 	<php_minimum>8.1</php_minimum>
 	<!-- supported_db: MySQL 8.0.13+ / MariaDB 10.4+ -->

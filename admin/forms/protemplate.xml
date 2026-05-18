@@ -87,10 +87,8 @@
 
 		<field
 			name="ordering"
-			type="number"
-			label="JFIELD_ORDERING_LABEL"
+			type="hidden"
 			default="0"
-			class="form-control"
 		/>
 
 		<field

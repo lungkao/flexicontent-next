@@ -100,7 +100,7 @@ $coreElementsJson = json_encode([
 			<?= $this->form->getInput('assignment_type') ?>
 			<?= $this->form->getInput('assignment_value') ?>
 			<div class="fcpt-detail-field"><?= $this->form->renderField('state') ?></div>
-			<div class="fcpt-detail-field"><?= $this->form->renderField('ordering') ?></div>
+			<?= $this->form->getInput('ordering') ?>
 			<div class="fcpt-detail-field is-wide"><?= $this->form->renderField('note') ?></div>
 		</div>
 	</div>
@@ -109,6 +109,7 @@ $coreElementsJson = json_encode([
 	<div id="fcpt-builder"
 	     x-data="fcptBuilder()"
 	     x-init="init()"
+	     x-cloak
 	     class="fcpt-builder-app">
 
 		<!-- Sidebar ──────────────────────────────────────── -->
@@ -446,6 +447,7 @@ $coreElementsJson = json_encode([
 		<!-- Element Picker Modal ──────────────────────────── -->
 		<div class="fcpt-modal-backdrop"
 		     x-show="picker.open"
+		     x-cloak
 		     x-transition.opacity
 		     @keydown.escape.window="closeElementPicker()"
 		     @click.self="closeElementPicker()">

@@ -43,10 +43,13 @@ else
 #[AllowDynamicProperties]
 class FlexicontentModelGroups extends FCModelAdminList
 {
+	// Parent FCModelAdminList declares $view_id with legacy `var` (untyped) and
+	// assigns $canManage dynamically — adding `mixed` here triggers a PHP 8 LSP
+	// fatal: "Type ... must not be defined (as in class FCModelAdminList)".
 	/** @var mixed $canManage */
-	public mixed $canManage = null;
+	public $canManage = null;
 	/** @var mixed $view_id */
-	public mixed $view_id = null;
+	public $view_id = null;
 
 	use FCModelTraitNestableRecord;
 
