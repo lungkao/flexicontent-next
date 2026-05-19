@@ -1,0 +1,259 @@
+/* ════════════════════════════════════════════════════════════════════
+   FLEXIcontent — Stats view modern skin (6.1.0-beta.4)
+
+   Pure CSS layer. Retro-fits the Bootstrap 2 stats template
+   (admin/views/stats/tmpl/default.php) to the FC modern design
+   tokens defined in j4x_modern.css. No PHP markup changes required
+   beyond a few accessibility hooks (heading IDs, chart aria-label,
+   visually-hidden data tables).
+
+   A11y-cleared (accessibility-lead) — WCAG 1.1.1 (chart text alt via
+   sibling table), 1.4.1 (color enhancement only — label + icon +
+   count provide non-color signal), 1.4.11/2.4.7 (focus-visible
+   outline 3:1+), 2.4.11 (focus not obscured).
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Wrapper density ──────────────────────────────────────────────── */
+#flexicontent .fc-stats-heading {
+	font-size: var(--fc-fs-lg) !important;
+	font-weight: 700 !important;
+	color: var(--fc-text) !important;
+	margin: 2.5rem 0 1rem 0 !important;
+	padding-bottom: .5rem;
+	border-bottom: 1px solid var(--fc-border);
+	letter-spacing: -.01em;
+}
+#flexicontent .fc-stats-heading:first-of-type {
+	margin-top: 1rem !important;
+}
+
+/* ── SITE TOTALS strip — chip-style links ─────────────────────────── */
+#flexicontent > div.row,
+#flexicontent > div.row-fluid {
+	margin-bottom: 1rem;
+}
+
+#flexicontent a.btn.btn-small {
+	display: inline-flex !important;
+	align-items: baseline;
+	gap: .375rem;
+	padding: .55rem 1rem !important;
+	margin: .25rem .25rem .25rem 0 !important;
+	background: var(--fc-bg-card) !important;
+	border: 1px solid var(--fc-border) !important;
+	border-radius: var(--fc-radius-pill) !important;
+	color: var(--fc-text) !important;
+	font-size: var(--fc-fs-sm) !important;
+	font-weight: 500 !important;
+	text-decoration: none !important;
+	box-shadow: var(--fc-shadow-sm) !important;
+	transition: all var(--fc-transition) !important;
+}
+#flexicontent a.btn.btn-small:hover {
+	border-color: var(--fc-primary) !important;
+	color: var(--fc-primary-dark) !important;
+	transform: translateY(-1px);
+	box-shadow: var(--fc-shadow) !important;
+}
+#flexicontent a.btn.btn-small:focus-visible {
+	outline: var(--fc-focus-width) solid var(--fc-focus-color);
+	outline-offset: var(--fc-focus-offset);
+}
+
+/* ── ITEM TOTALS tiles — colored top band, big count, small label ── */
+#flexicontent a.btn.btn-block.btn-large {
+	display: flex !important;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: center;
+	gap: .25rem;
+	min-height: 96px;
+	padding: 1rem 1.125rem !important;
+	margin: 0 !important;
+	background: var(--fc-bg-card) !important;
+	border: 1px solid var(--fc-border) !important;
+	border-top: 4px solid var(--fc-text-muted) !important;
+	border-radius: var(--fc-radius) !important;
+	color: var(--fc-text) !important;
+	text-align: left !important;
+	text-decoration: none !important;
+	box-shadow: var(--fc-shadow-sm) !important;
+	transition: all var(--fc-transition) !important;
+	font-weight: 400 !important;
+}
+
+/* Semantic color band per state — color is enhancement only */
+#flexicontent a.btn.btn-block.btn-large.btn-success { border-top-color: var(--fc-success) !important; }
+#flexicontent a.btn.btn-block.btn-large.btn-warning { border-top-color: var(--fc-warning) !important; }
+#flexicontent a.btn.btn-block.btn-large.btn-danger  { border-top-color: var(--fc-danger)  !important; }
+#flexicontent a.btn.btn-block.btn-large.btn-primary { border-top-color: var(--fc-primary) !important; }
+#flexicontent a.btn.btn-block.btn-large.btn-info    { border-top-color: var(--fc-accent)  !important; }
+
+#flexicontent a.btn.btn-block.btn-large > div > span {
+	display: block;
+	font-size: 2rem !important;
+	font-weight: 700 !important;
+	line-height: 1.1 !important;
+	color: var(--fc-text) !important;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: -.02em;
+}
+#flexicontent a.btn.btn-block.btn-large > div {
+	color: inherit !important;
+	background: transparent !important;
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+}
+#flexicontent a.btn.btn-block.btn-large > div > i {
+	font-size: 1.125rem !important;
+	color: var(--fc-text-muted) !important;
+}
+#flexicontent a.btn.btn-block.btn-large > small {
+	font-size: var(--fc-fs-xs) !important;
+	color: var(--fc-text-muted) !important;
+	font-weight: 500 !important;
+	letter-spacing: .01em;
+	line-height: 1.35 !important;
+	text-transform: none !important;
+}
+
+#flexicontent a.btn.btn-block.btn-large:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--fc-shadow-md) !important;
+	border-color: var(--fc-border-focus) !important;
+}
+#flexicontent a.btn.btn-block.btn-large:focus-visible {
+	outline: var(--fc-focus-width) solid var(--fc-focus-color);
+	outline-offset: var(--fc-focus-offset);
+	transform: none;
+}
+
+#flexicontent a.btn.btn-block.btn-large .white,
+#flexicontent a.btn.btn-block.btn-large > div.white {
+	color: inherit !important;
+}
+
+/* ── .well panel → modern card ────────────────────────────────────── */
+#flexicontent .well {
+	background: var(--fc-bg-card) !important;
+	border: 1px solid var(--fc-border) !important;
+	border-radius: var(--fc-radius) !important;
+	box-shadow: var(--fc-shadow-sm) !important;
+	padding: 1.25rem 1.5rem !important;
+	margin-bottom: 1.25rem !important;
+}
+#flexicontent .well h3 {
+	font-size: 1rem !important;
+	font-weight: 700 !important;
+	color: var(--fc-text) !important;
+	margin: 0 0 .75rem 0 !important;
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+}
+#flexicontent .well h3 .btn {
+	margin-left: auto !important;
+}
+#flexicontent .well > hr {
+	display: none;
+}
+
+/* ── Admin tables inside .well ────────────────────────────────────── */
+#flexicontent .well .adminlist.table {
+	margin: 0 !important;
+	border-collapse: separate !important;
+	border-spacing: 0 !important;
+}
+#flexicontent .well .adminlist.table thead th {
+	font-size: var(--fc-fs-xs) !important;
+	font-weight: 700 !important;
+	color: var(--fc-text-muted) !important;
+	text-transform: uppercase;
+	letter-spacing: .04em;
+	padding: .5rem .75rem !important;
+	background: transparent !important;
+	border-bottom: 1px solid var(--fc-border) !important;
+}
+#flexicontent .well .adminlist.table tbody td {
+	padding: .625rem .75rem !important;
+	border-bottom: 1px solid var(--fc-border) !important;
+	vertical-align: middle;
+	line-height: 1.5;
+}
+#flexicontent .well .adminlist.table tbody tr:last-child td {
+	border-bottom: none !important;
+}
+#flexicontent .well .adminlist.table tbody tr:hover {
+	background: var(--fc-primary-light) !important;
+}
+#flexicontent .well .adminlist.table .badge {
+	font-size: var(--fc-fs-xs) !important;
+	font-weight: 600 !important;
+	padding: .2rem .55rem !important;
+	border-radius: var(--fc-radius-pill) !important;
+	font-variant-numeric: tabular-nums;
+}
+#flexicontent .well .adminlist.table .badge.bg-info,
+#flexicontent .well .adminlist.table .badge.badge-info {
+	background: var(--fc-primary-light) !important;
+	color: var(--fc-primary-dark) !important;
+}
+#flexicontent .well .adminlist.table .badge.bg-success,
+#flexicontent .well .adminlist.table .badge.badge-success {
+	background: #ecfdf5 !important;
+	color: #047857 !important;
+}
+#flexicontent .well .adminlist.table a {
+	color: var(--fc-primary-dark) !important;
+	text-decoration: none;
+}
+#flexicontent .well .adminlist.table a:hover,
+#flexicontent .well .adminlist.table a:focus-visible {
+	text-decoration: underline;
+}
+
+/* ── Chart container — modern frame ───────────────────────────────── */
+#flexicontent #main,
+#flexicontent #pie {
+	background: var(--fc-bg-card) !important;
+	border: 1px solid var(--fc-border) !important;
+	border-radius: var(--fc-radius) !important;
+	box-shadow: var(--fc-shadow-sm) !important;
+	padding: 1rem !important;
+	margin-bottom: 1rem;
+}
+
+/* Visually-hidden chart data alternative (WCAG 1.1.1) */
+.fc-chart-data {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	white-space: nowrap !important;
+	border: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#flexicontent a.btn.btn-small:hover,
+	#flexicontent a.btn.btn-block.btn-large:hover {
+		transform: none !important;
+		transition: none !important;
+	}
+}
+
+@media (max-width: 768px) {
+	#flexicontent a.btn.btn-block.btn-large {
+		min-height: 80px;
+		padding: .875rem 1rem !important;
+	}
+	#flexicontent a.btn.btn-block.btn-large > div > span {
+		font-size: 1.625rem !important;
+	}
+	#flexicontent .well {
+		padding: 1rem !important;
+	}
+}

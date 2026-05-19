@@ -115,6 +115,17 @@ class FlexicontentViewStats extends FlexicontentViewBaseRecords
 			? /* J5/J6 WebAsset: */ $document->getWebAssetManager()->registerAndUseStyle('fc-style', \Joomla\CMS\Uri\Uri::root().'administrator/components/com_flexicontent/assets/css/' . (FLEXI_J40GE ? 'j4x.css' : (JDEBUG ? 'j3x.css' : 'j3x.min.css')), array('version' => FLEXI_VHASH))
 			: /* J5/J6 WebAsset: */ $document->getWebAssetManager()->registerAndUseStyle('fc-style', \Joomla\CMS\Uri\Uri::root().'administrator/components/com_flexicontent/assets/css/' . (FLEXI_J40GE ? 'j4x_rtl.css' : (JDEBUG ? 'j3x_rtl.css' : 'j3x_rtl.min.css')), array('version' => FLEXI_VHASH));
 
+		// Modern stats skin — retro-fits Bootstrap 2 markup to FC design
+		// tokens (cards, focus-visible rings, chart frames). J5/J6 only.
+		if (FLEXI_J40GE)
+		{
+			$document->getWebAssetManager()->registerAndUseStyle(
+				'fc-stats-modern',
+				\Joomla\CMS\Uri\Uri::root() . 'administrator/components/com_flexicontent/assets/css/stats_modern.css',
+				array('version' => FLEXI_VHASH)
+			);
+		}
+
 
 
 		//*****************************************************************Adicionar as biblitecas*******************************************************************************************//

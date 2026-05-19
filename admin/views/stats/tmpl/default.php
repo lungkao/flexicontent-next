@@ -94,7 +94,7 @@ $ctrl_users = "task=users.";
 <?php endif; ?>
 
 
-	<h2 class="fc-stats-heading" style="font-size:18px; margin:20px 0;">
+	<h2 class="fc-stats-heading" id="fc-stats-site-totals">
 		<?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_TOTAL_NUM_OF' ); ?>
 	</h2>
 
@@ -194,7 +194,7 @@ $ctrl_users = "task=users.";
 
 	<hr>
 
-	<h2 class="fc-stats-heading" style="font-size:18px; margin:60px 0 20px 0;">
+	<h2 class="fc-stats-heading" id="fc-stats-items-creation">
 		<?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_ITEMS' ); ?> &mdash; <?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_CREATION_DATE' ); ?>
 	</h2>
 
@@ -221,7 +221,29 @@ $ctrl_users = "task=users.";
 	<div class="row-fluid">
 		<div class="span12">
 			<div class="">
-				<div id="main" style="height:400px;width:100%"></div>
+				<div id="main" style="height:400px;width:100%"
+					role="img"
+					aria-labelledby="fc-stats-items-creation"
+					aria-describedby="fc-chart-items-creation-data"></div>
+
+				<!-- WCAG 1.1.1: text alternative for canvas-based echart -->
+				<table class="fc-chart-data" id="fc-chart-items-creation-data">
+					<caption><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_ITEMS' ); ?> &mdash; <?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_CREATION_DATE' ); ?></caption>
+					<thead>
+						<tr>
+							<th scope="col"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_DATE' ); ?></th>
+							<th scope="col"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_ITEMS' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+					<?php foreach ($this->itemsgraph[0] as $row): ?>
+						<tr>
+							<th scope="row"><?php echo htmlspecialchars($row->year_month_text, ENT_QUOTES, 'UTF-8'); ?></th>
+							<td><?php echo (int) $row->item_count; ?></td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
 			</div>
 		</div>
 	</div>
@@ -287,7 +309,7 @@ $ctrl_users = "task=users.";
 
 
 	<hr>
-	<h2 class="fc-stats-heading" style="font-size:18px; margin:60px 0 20px 0;">
+	<h2 class="fc-stats-heading" id="fc-stats-item-states">
 		<?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_ITEM_STATES_CHART' ); ?>
 	</h2>
 
@@ -295,7 +317,34 @@ $ctrl_users = "task=users.";
 	<div class="row-fluid">
 		<div class="span11">
 
-			<div id="pie" style="height:525px; 1px solid #ccc; padding: 10px;"></div>
+			<div id="pie" style="height:525px; padding: 10px;"
+				role="img"
+				aria-labelledby="fc-stats-item-states"
+				aria-describedby="fc-chart-item-states-data"></div>
+
+			<!-- WCAG 1.1.1: text alternative for canvas-based echart -->
+			<?php
+				$_chart_workflow      = $this->statestats;
+				$_chart_labels        = explode('|', $_chart_workflow['labels']);
+				$_chart_values        = explode(',', $_chart_workflow['values']);
+			?>
+			<table class="fc-chart-data" id="fc-chart-item-states-data">
+				<caption><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_ITEM_STATES_CHART' ); ?></caption>
+				<thead>
+					<tr>
+						<th scope="col"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_STATE' ); ?></th>
+						<th scope="col"><?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_NUM' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php foreach ($_chart_labels as $_idx => $_label): ?>
+					<tr>
+						<th scope="row"><?php echo htmlspecialchars($_label, ENT_QUOTES, 'UTF-8'); ?></th>
+						<td><?php echo (int) ($_chart_values[$_idx] ?? 0); ?></td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
 
 			<?php
 
@@ -368,7 +417,7 @@ $ctrl_users = "task=users.";
 
 
 	<hr>
-	<h2 class="fc-stats-heading" style="font-size:18px; margin:60px 0 20px 0;">
+	<h2 class="fc-stats-heading" id="fc-stats-general">
 		<?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_GENERAL_STATS' ); ?>
 	</h2>
 
@@ -508,7 +557,7 @@ $ctrl_users = "task=users.";
 
 	<div class="fcclear"></div>
 
-	<h2 class="fc-stats-heading" style="font-size:18px; margin:60px 0 20px 0;">
+	<h2 class="fc-stats-heading" id="fc-stats-rating">
 		<?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_RATING_STATS' ); ?>
 	</h2>
 
@@ -679,7 +728,7 @@ $ctrl_users = "task=users.";
 
 	<div class="fcclear"></div>
 	<hr>
-	<h2 class="fc-stats-heading" style="font-size:18px; margin:60px 0 20px 0;">
+	<h2 class="fc-stats-heading" id="fc-stats-users">
 		<?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_USER_STATS' ); ?>
 	</h2>
 
