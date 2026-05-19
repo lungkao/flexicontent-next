@@ -1203,28 +1203,62 @@ class FlexicontentViewCategory extends \Joomla\CMS\MVC\View\HtmlView
 		if ($_proLayout && !empty($_proLayout->layout_decoded))
 		{
 			try {
-				// Adapt category into an item-like shape so the existing
-				// renderer's article blocks (title/introtext/image_intro)
-				// can pull from the right properties. Renderer in
-				// 'category' context skips per-item-only blocks.
-				$_proSource = (object) [
-					'id'             => (int) ($this->category->id ?? 0),
-					'title'          => (string) ($this->category->title ?? ''),
-					'introtext'      => (string) ($this->category->description ?? ''),
-					'fulltext'       => '',
-					'images'         => (object) [
-						'image_intro'     => (string) ($this->category->image ?? ''),
-						'image_intro_alt' => (string) ($this->category->image_alt ?? ''),
-					],
-					'created'        => (string) ($this->category->created_time ?? ''),
-					'modified'       => (string) ($this->category->modified_time ?? ''),
-					'category_title' => (string) ($this->category->title ?? ''),
-					'category_route' => '',
-					'tags'           => [],
-				];
-
+				// Category default layout now renders the matched category-
+				// scope Pro Layout ONCE PER ITEM (teaser feed), not once per
+				// category. The category preset shape (image_intro + title +
+				// created + introtext) was designed as a per-item card from
+				// 6.1.0-beta.8 onwards — using it on category metadata gave
+				// near-empty output whenever the category itself had no
+				// description/image (which is most of the time).
+				//
+				// Output: <ul><li><article>card</article></li>...</ul>.
+				// Renderer in 'category' context clamps heading to h2 and
+				// forces empty image alt (adjacent h2 names each card).
 				$_proRenderer = new \FlexicontentProTemplateRenderer();
-				echo $_proRenderer->render($_proLayout->layout_decoded, $_proSource, 'category');
+				$_proItemsArr = is_array($this->items ?? null) ? $this->items : [];
+
+				if (!empty($_proItemsArr)) {
+					echo '<ul class="fc-cat-pro-list">';
+					foreach ($_proItemsArr as $_proItem) {
+						if (!is_object($_proItem)) { continue; }
+						echo '<li class="fc-cat-pro-li">';
+						try {
+							echo $_proRenderer->render($_proLayout->layout_decoded, $_proItem, 'category');
+						} catch (\Throwable $_proItemErr) {
+							$_pTitle = (string) ($_proItem->title ?? '');
+							$_pIntro = (string) ($_proItem->introtext ?? '');
+							echo '<article class="fc-cat-pro-fallback">'
+								. '<h2 class="fc-cat-pro-title">' . htmlspecialchars($_pTitle, ENT_QUOTES, 'UTF-8') . '</h2>'
+								. ($_pIntro !== '' ? '<div class="fc-cat-pro-intro">' . $_pIntro . '</div>' : '')
+								. '</article>';
+						}
+						echo '</li>';
+					}
+					echo '</ul>';
+				} else {
+					// Empty category — render the category itself as a
+					// single card so the page is not literally blank, plus
+					// a localised "no items" message in a live region.
+					$_proCatSource = (object) [
+						'id'        => (int) ($this->category->id ?? 0),
+						'title'     => (string) ($this->category->title ?? ''),
+						'introtext' => (string) ($this->category->description ?? ''),
+						'fulltext'  => '',
+						'images'    => (object) [
+							'image_intro'     => (string) ($this->category->image ?? ''),
+							'image_intro_alt' => (string) ($this->category->image_alt ?? ''),
+						],
+						'created'   => (string) ($this->category->created_time ?? ''),
+						'modified'  => (string) ($this->category->modified_time ?? ''),
+						'tags'      => [],
+					];
+					echo '<div class="fc-cat-pro-empty">';
+					echo $_proRenderer->render($_proLayout->layout_decoded, $_proCatSource, 'category');
+					echo '<p class="fc-cat-pro-empty-msg" role="status">'
+						. htmlspecialchars(\Joomla\CMS\Language\Text::_('FLEXI_NO_ITEMS_CAT'), ENT_QUOTES, 'UTF-8')
+						. '</p>';
+					echo '</div>';
+				}
 			} catch (\Throwable $_proErr) {
 				$_proLayout = null;
 				if ($print_logging_info) {
