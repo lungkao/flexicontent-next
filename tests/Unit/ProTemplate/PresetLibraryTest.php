@@ -386,6 +386,111 @@ class PresetLibraryTest extends TestCase
 		}
 	}
 
+	/**
+	 * Regression guard for the 6.1.0-beta.6 → beta.8 incident: category
+	 * presets shipped with text()-only mockup placeholders ("Card slot",
+	 * "Featured story", "Items list renders here") instead of real article
+	 * element references. Layouts created from those presets rendered as
+	 * empty teaser cards on the frontend because renderText() output is
+	 * inert template copy with no content binding.
+	 */
+	public function testNoStaleMockupPlaceholders(): void
+	{
+		$bannedPhrases = [
+			'Card slot',
+			'Card slot 1',
+			'Card slot 2',
+			'Card slot 3',
+			'Featured story',
+			'Featured items',
+			'Items grid renders here',
+			'More from this category',
+			'Items list renders below',
+			'Primary feature renders here',
+			'Editor pick',
+			'Lead story',
+			'Secondary item slot',
+			'Dense items list renders here',
+			'Top item from category renders here',
+		];
+
+		foreach (['item', 'category'] as $scope) {
+			foreach (\FlexicontentProTemplatePresetLibrary::getLayoutPresets($scope) as $p) {
+				$flat = json_encode($p['layout']);
+				foreach ($bannedPhrases as $phrase) {
+					$this->assertStringNotContainsString(
+						$phrase,
+						$flat,
+						"Preset {$p['key']} contains stale mockup placeholder: \"$phrase\""
+					);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Category presets must NOT carry stand-alone text() elements at all —
+	 * they exist for per-item teaser rendering where every element should
+	 * bind to item data (article type), not emit static copy. text() is
+	 * fine in item-scope presets (e.g. demo paragraphs) but in category
+	 * scope it produces dead placeholder output on every card.
+	 */
+	public function testCategoryPresetsContainNoTextElements(): void
+	{
+		foreach (\FlexicontentProTemplatePresetLibrary::getLayoutPresets('category') as $p) {
+			$textCount = 0;
+			foreach (($p['layout']['sections'] ?? []) as $sec) {
+				foreach (($sec['rows'] ?? []) as $row) {
+					foreach (($row['cols'] ?? []) as $col) {
+						foreach (($col['elements'] ?? []) as $el) {
+							if (($el['type'] ?? '') === 'text') { $textCount++; }
+						}
+					}
+				}
+			}
+			$this->assertSame(
+				0,
+				$textCount,
+				"Category preset {$p['key']} must use article elements only — found {$textCount} text() placeholder element(s)"
+			);
+		}
+	}
+
+	/**
+	 * Every preset must produce a non-empty rendered tree once the Renderer
+	 * walks it: at least one section, at least one row in each section, at
+	 * least one column per row, at least one element per column. Empty
+	 * sub-trees are silently dropped by the Renderer (returns ''), so an
+	 * empty section ships as a blank frontend card.
+	 */
+	public function testEveryPresetTreeIsNonEmpty(): void
+	{
+		foreach (['item', 'category'] as $scope) {
+			foreach (\FlexicontentProTemplatePresetLibrary::getLayoutPresets($scope) as $p) {
+				$sections = $p['layout']['sections'] ?? [];
+				$this->assertNotEmpty($sections, "Preset {$p['key']} has no sections");
+
+				foreach ($sections as $i => $sec) {
+					$rows = $sec['rows'] ?? [];
+					$this->assertNotEmpty($rows, "Preset {$p['key']} section {$i} has no rows");
+
+					foreach ($rows as $j => $row) {
+						$cols = $row['cols'] ?? [];
+						$this->assertNotEmpty($cols, "Preset {$p['key']} section {$i} row {$j} has no cols");
+
+						foreach ($cols as $k => $col) {
+							$els = $col['elements'] ?? [];
+							$this->assertNotEmpty(
+								$els,
+								"Preset {$p['key']} section {$i} row {$j} col {$k} has no elements"
+							);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/* Unique keys ------------------------------------------------------ */
 
 	public function testLayoutPresetKeysAreUnique(): void
