@@ -1,0 +1,216 @@
+/**
+ * FLEXIcontent Pro Templates — Font picker stylesheet
+ *
+ * Styles the admin-side ARIA 1.2 combobox emitted by
+ * admin/models/fields/protemplate_font.php. Scoped under
+ * `.fcpt-font-picker` so it cannot leak into Joomla chrome.
+ *
+ * Accessibility:
+ *   - :focus-visible 3:1+ outline
+ *   - prefers-reduced-motion disables transitions
+ *   - forced-colors mode falls back to CanvasText / Highlight
+ *   - Listbox max-height with overflow-y:auto keeps AT scroll predictable
+ *
+ * @since 6.1.0-beta.8
+ */
+
+.fcpt-font-picker {
+	--fcpt-fp-bg:          #ffffff;
+	--fcpt-fp-bg-alt:      #f8fafc;
+	--fcpt-fp-border:      #cbd5e1;
+	--fcpt-fp-text:        #0f172a;
+	--fcpt-fp-muted:       #475569;
+	--fcpt-fp-active:      #0ea5e9;
+	--fcpt-fp-active-bg:   #e0f2fe;
+	--fcpt-fp-focus-ring:  #0284c7;
+
+	position: relative;
+	display: grid;
+	grid-template-columns: 1fr auto;
+	grid-template-rows: auto auto auto;
+	column-gap: 0.5rem;
+	row-gap: 0.5rem;
+	max-width: 520px;
+	color: var(--fcpt-fp-text);
+}
+
+@media (prefers-color-scheme: dark) {
+	.fcpt-font-picker {
+		--fcpt-fp-bg:        #1f2937;
+		--fcpt-fp-bg-alt:    #111827;
+		--fcpt-fp-border:    #374151;
+		--fcpt-fp-text:      #f3f4f6;
+		--fcpt-fp-muted:     #9ca3af;
+		--fcpt-fp-active:    #38bdf8;
+		--fcpt-fp-active-bg: #0c4a6e;
+	}
+}
+
+.fcpt-font-picker-input {
+	grid-column: 1;
+	grid-row: 1;
+	width: 100%;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid var(--fcpt-fp-border);
+	border-radius: 6px;
+	background: var(--fcpt-fp-bg);
+	color: var(--fcpt-fp-text);
+	font: inherit;
+	transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.fcpt-font-picker-input:focus-visible {
+	outline: 3px solid var(--fcpt-fp-focus-ring);
+	outline-offset: 2px;
+	border-color: var(--fcpt-fp-active);
+}
+
+.fcpt-font-picker-clear {
+	grid-column: 2;
+	grid-row: 1;
+	border: 1px solid var(--fcpt-fp-border);
+	background: var(--fcpt-fp-bg);
+	color: var(--fcpt-fp-muted);
+	border-radius: 6px;
+	width: 2.25rem;
+	height: 2.25rem;
+	font-size: 1.25rem;
+	line-height: 1;
+	cursor: pointer;
+	transition: background-color 150ms ease, color 150ms ease;
+}
+
+.fcpt-font-picker-clear:hover {
+	background: var(--fcpt-fp-bg-alt);
+	color: var(--fcpt-fp-text);
+}
+
+.fcpt-font-picker-clear:focus-visible {
+	outline: 3px solid var(--fcpt-fp-focus-ring);
+	outline-offset: 2px;
+}
+
+.fcpt-font-picker-listbox {
+	grid-column: 1 / -1;
+	grid-row: 2;
+	list-style: none;
+	margin: 0;
+	padding: 0.25rem 0;
+	border: 1px solid var(--fcpt-fp-border);
+	border-radius: 6px;
+	background: var(--fcpt-fp-bg);
+	max-height: 320px;
+	overflow-y: auto;
+	box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.12);
+	z-index: 10;
+}
+
+.fcpt-font-picker-listbox[hidden] {
+	display: none;
+}
+
+.fcpt-font-picker-option {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.45rem 0.75rem;
+	cursor: pointer;
+	color: var(--fcpt-fp-text);
+	transition: background-color 100ms ease, color 100ms ease;
+}
+
+.fcpt-font-picker-option:hover {
+	background: var(--fcpt-fp-bg-alt);
+}
+
+.fcpt-font-picker-option.is-active,
+.fcpt-font-picker-option[aria-selected="true"] {
+	background: var(--fcpt-fp-active-bg);
+	color: var(--fcpt-fp-active);
+}
+
+.fcpt-font-picker-option-name {
+	font-size: 1.05rem;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.fcpt-font-picker-option-meta {
+	flex: 0 0 auto;
+	font-size: 0.7rem;
+	font-family: ui-monospace, SFMono-Regular, monospace;
+	color: var(--fcpt-fp-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.fcpt-font-picker-live {
+	position: absolute;
+	left: -10000px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+.fcpt-font-picker-preview {
+	grid-column: 1 / -1;
+	grid-row: 3;
+	margin-top: 0.25rem;
+	padding: 0.85rem 1rem;
+	background: var(--fcpt-fp-bg-alt);
+	border: 1px dashed var(--fcpt-fp-border);
+	border-radius: 6px;
+}
+
+.fcpt-font-picker-preview-label {
+	display: block;
+	font-size: 0.7rem;
+	color: var(--fcpt-fp-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	margin-bottom: 0.25rem;
+}
+
+.fcpt-font-picker-preview-sample,
+.fcpt-font-picker-preview-thai {
+	margin: 0;
+	font-size: 1.1rem;
+	line-height: 1.5;
+	color: var(--fcpt-fp-text);
+}
+
+.fcpt-font-picker-preview-thai {
+	margin-top: 0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.fcpt-font-picker-input,
+	.fcpt-font-picker-clear,
+	.fcpt-font-picker-option {
+		transition: none;
+	}
+}
+
+@media (forced-colors: active) {
+	.fcpt-font-picker-input,
+	.fcpt-font-picker-clear,
+	.fcpt-font-picker-listbox,
+	.fcpt-font-picker-preview {
+		border: 1px solid CanvasText;
+	}
+
+	.fcpt-font-picker-input:focus-visible,
+	.fcpt-font-picker-clear:focus-visible {
+		outline: 3px solid Highlight;
+		outline-offset: 2px;
+	}
+
+	.fcpt-font-picker-option.is-active,
+	.fcpt-font-picker-option[aria-selected="true"] {
+		background: Highlight;
+		color: HighlightText;
+	}
+}

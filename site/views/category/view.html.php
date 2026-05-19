@@ -1148,6 +1148,9 @@ class FlexicontentViewCategory extends \Joomla\CMS\MVC\View\HtmlView
 		if ($_proHelpersExist) {
 			require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Resolver.php';
 			require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Renderer.php';
+			if (is_file(JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Fonts.php')) {
+				require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Fonts.php';
+			}
 		}
 
 		if ($_proHelpersExist && in_array($_proUrlLayout, ['', 'category'], true))
@@ -1219,6 +1222,29 @@ class FlexicontentViewCategory extends \Joomla\CMS\MVC\View\HtmlView
 					array('version' => FLEXI_VHASH),
 					array('defer' => true)
 				);
+				// Google Fonts loader — extracts theme.typography from the
+				// Pro Layout, emits preconnect + stylesheet for matched fonts.
+				// Inline <style> binds the font tokens to .fcpt-layout.
+				if (class_exists('FlexicontentProTemplateFonts', false)) {
+					$_proFontResolved = \FlexicontentProTemplateFonts::register(
+						$document,
+						$_proLayout->layout_decoded
+					);
+					$_proFontTypography = $_proLayout->layout_decoded['settings']['theme_data']['typography']
+						?? ($_proLayout->layout_decoded->settings->theme_data->typography ?? null);
+					if (is_object($_proFontTypography)) {
+						$_proFontTypography = (array) $_proFontTypography;
+					}
+					if (is_array($_proFontTypography)) {
+						$_proFontCss = \FlexicontentProTemplateFonts::buildScopeCss(
+							$_proFontResolved,
+							$_proFontTypography
+						);
+						if ($_proFontCss !== '') {
+							$document->addStyleDeclaration($_proFontCss);
+						}
+					}
+				}
 
 				// Category default layout now renders the matched category-
 				// scope Pro Layout ONCE PER ITEM (teaser feed), not once per
@@ -1307,6 +1333,34 @@ class FlexicontentViewCategory extends \Joomla\CMS\MVC\View\HtmlView
 					array('version' => FLEXI_VHASH),
 					array('defer' => true)
 				);
+				// Google Fonts loader — fires for the FIRST matched per-item
+				// layout in the mcats result set. All items share visual
+				// treatment so loading one font set covers the list.
+				if (class_exists('FlexicontentProTemplateFonts', false)) {
+					foreach ($_proMcatsItems as $_pmi) {
+						if (!empty($_pmi['layout']->layout_decoded)) {
+							$_proFontResolved = \FlexicontentProTemplateFonts::register(
+								$document,
+								$_pmi['layout']->layout_decoded
+							);
+							$_proFontTypography = $_pmi['layout']->layout_decoded['settings']['theme_data']['typography']
+								?? ($_pmi['layout']->layout_decoded->settings->theme_data->typography ?? null);
+							if (is_object($_proFontTypography)) {
+								$_proFontTypography = (array) $_proFontTypography;
+							}
+							if (is_array($_proFontTypography)) {
+								$_proFontCss = \FlexicontentProTemplateFonts::buildScopeCss(
+									$_proFontResolved,
+									$_proFontTypography
+								);
+								if ($_proFontCss !== '') {
+									$document->addStyleDeclaration($_proFontCss);
+								}
+							}
+							break;
+						}
+					}
+				}
 				echo '<ul class="fc-mcats-pro-list">';
 				$_proRenderer = new \FlexicontentProTemplateRenderer();
 				foreach ($_proMcatsItems as $_pmi) {

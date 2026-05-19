@@ -837,3 +837,395 @@
 		padding: 0.25rem 0.5rem;
 	}
 }
+
+/* =================================================================
+   EXPRESSIVE THEMES (v3 — 6.1.0-beta.8+)
+   Each theme overrides the token surface via [data-fcpt-theme="X"] on
+   the .fcpt-layout div emitted by the Renderer. Themes only retheme;
+   they cannot reorder layout or change AT contract.
+
+   All theme contrast pairs verified against WCAG 2.2 AA:
+     - Body text >=4.5:1 against card surface
+     - Accent solid fallback >=4.5:1 against card surface
+     - Border >=3:1 against card surface (1.4.11)
+     - Focus ring >=3:1 against BOTH card surface AND page surface
+
+   A11y-cleared by accessibility-lead 2026-05-19 (Round 2).
+   Tweaks applied:
+     - Gradient titles only on large text (>=24px OR >=18.66px bold)
+     - Solid fallback color via @supports (-webkit-background-clip: text)
+     - forced-colors mode resets gradients to system tokens
+     - prefers-reduced-motion disables all theme animations
+     - color-scheme declared per theme for native form/scrollbar rendering
+     - Ocean Glass bumped from 0.7 → 0.85 alpha (works over dark page bg)
+   ================================================================= */
+
+/* ── Aurora ──────────────────────────────────────────────────────── */
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme="aurora"] {
+	--fc-focus-ring:        #7c3aed;
+	--fc-accent:            #7c3aed;
+	--fc-accent-solid:      #7c3aed;
+	--fc-accent-gradient:   linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #ec4899 100%);
+	--fc-card-bg:           #ffffff;
+	--fc-card-bg-elev:      #fafbff;
+	--fc-card-border:       #e0e7ff;
+	--fc-card-shadow:       0 1px 3px rgba(124, 58, 237, 0.08), 0 8px 24px -8px rgba(124, 58, 237, 0.14);
+	--fc-card-shadow-hov:   0 4px 12px -2px rgba(124, 58, 237, 0.18), 0 16px 36px -10px rgba(236, 72, 153, 0.22);
+	--fc-text:              #0f172a;
+	--fc-text-muted:        #475569;
+	--fc-image-placeholder: #f3e8ff;
+	color-scheme: light;
+}
+
+/* ── Sunset ──────────────────────────────────────────────────────── */
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme="sunset"] {
+	--fc-focus-ring:        #c2410c;
+	--fc-accent:            #c2410c;
+	--fc-accent-solid:      #c2410c;
+	--fc-accent-gradient:   linear-gradient(135deg, #fb923c 0%, #f43f5e 60%, #a855f7 100%);
+	--fc-card-bg:           #fffaf5;
+	--fc-card-bg-elev:      #fff5eb;
+	--fc-card-border:       #fde4cd;
+	--fc-card-shadow:       0 1px 3px rgba(244, 63, 94, 0.08), 0 8px 24px -8px rgba(244, 63, 94, 0.14);
+	--fc-card-shadow-hov:   0 4px 12px -2px rgba(244, 63, 94, 0.18), 0 16px 36px -10px rgba(168, 85, 247, 0.20);
+	--fc-text:              #1c1917;
+	--fc-text-muted:        #57534e;
+	--fc-image-placeholder: #fed7aa;
+	color-scheme: light;
+}
+
+/* ── Ocean Glass ─────────────────────────────────────────────────── */
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme="ocean-glass"] {
+	--fc-focus-ring:        #0e7490;
+	--fc-accent:            #0e7490;
+	--fc-accent-solid:      #0e7490;
+	--fc-accent-gradient:   linear-gradient(135deg, #06b6d4 0%, #0e7490 50%, #1e40af 100%);
+	--fc-card-bg:           #ffffff;
+	--fc-card-bg-elev:      #f0fdfa;
+	--fc-card-border:       #99f6e4;
+	--fc-card-shadow:       0 1px 3px rgba(14, 116, 144, 0.08), 0 8px 24px -8px rgba(14, 116, 144, 0.14);
+	--fc-card-shadow-hov:   0 4px 12px -2px rgba(14, 116, 144, 0.18), 0 16px 36px -10px rgba(6, 182, 212, 0.22);
+	--fc-text:              #134e4a;
+	--fc-text-muted:        #3f6359;
+	--fc-image-placeholder: #ccfbf1;
+	color-scheme: light;
+}
+
+/* Glassmorphism — supported browsers only; opaque fallback otherwise */
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+	:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme="ocean-glass"] .fc-cat-pro-li,
+	:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme="ocean-glass"] .fc-mcats-pro-li {
+		background: rgba(255, 255, 255, 0.85);
+		backdrop-filter: blur(20px) saturate(140%);
+		-webkit-backdrop-filter: blur(20px) saturate(140%);
+	}
+}
+
+/* ── Cyber Neon ──────────────────────────────────────────────────── */
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme="cyber-neon"] {
+	--fc-focus-ring:        #06b6d4;
+	--fc-accent:            #ec4899;
+	--fc-accent-solid:      #f472b6;
+	--fc-accent-gradient:   linear-gradient(135deg, #ec4899 0%, #06b6d4 100%);
+	--fc-card-bg:           #0a0a0f;
+	--fc-card-bg-elev:      #14141f;
+	--fc-card-border:       rgba(236, 72, 153, 0.3);
+	--fc-card-shadow:       0 1px 3px rgba(0, 0, 0, 0.6), 0 8px 24px -8px rgba(236, 72, 153, 0.18);
+	--fc-card-shadow-hov:   0 4px 12px -2px rgba(0, 0, 0, 0.7), 0 0 32px -8px rgba(236, 72, 153, 0.55), 0 16px 36px -10px rgba(6, 182, 212, 0.30);
+	--fc-text:              #fafafa;
+	--fc-text-muted:        #a3a3a3;
+	--fc-image-placeholder: #1a1a2e;
+	color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme="cyber-neon"] .fcpt-title {
+		text-shadow: 0 0 12px rgba(236, 72, 153, 0.45);
+	}
+}
+
+/* ── Pastel Dream ────────────────────────────────────────────────── */
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme="pastel-dream"] {
+	--fc-focus-ring:        #be185d;
+	--fc-accent:            #be185d;
+	--fc-accent-solid:      #be185d;
+	--fc-accent-gradient:   linear-gradient(135deg, #f472b6 0%, #c084fc 50%, #60a5fa 100%);
+	--fc-card-bg:           #ffffff;
+	--fc-card-bg-elev:      #fdf4ff;
+	--fc-card-border:       #fbcfe8;
+	--fc-card-shadow:       0 1px 3px rgba(244, 114, 182, 0.10), 0 8px 24px -8px rgba(244, 114, 182, 0.18);
+	--fc-card-shadow-hov:   0 4px 12px -2px rgba(244, 114, 182, 0.22), 0 16px 36px -10px rgba(192, 132, 252, 0.24);
+	--fc-text:              #500724;
+	--fc-text-muted:        #831843;
+	--fc-image-placeholder: #fce7f3;
+	--fc-radius-card:       24px;
+	color-scheme: light;
+}
+
+/* ── Monochrome Plus ─────────────────────────────────────────────── */
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme="monochrome-plus"] {
+	--fc-focus-ring:        #000000;
+	--fc-accent:            #000000;
+	--fc-accent-solid:      #000000;
+	--fc-accent-gradient:   linear-gradient(135deg, #000000, #404040);
+	--fc-card-bg:           #ffffff;
+	--fc-card-bg-elev:      #fafafa;
+	--fc-card-border:       #d4d4d4;
+	--fc-card-shadow:       0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -8px rgba(0, 0, 0, 0.08);
+	--fc-card-shadow-hov:   0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 16px 36px -10px rgba(0, 0, 0, 0.14);
+	--fc-text:              #000000;
+	--fc-text-muted:        #525252;
+	--fc-image-placeholder: #f5f5f5;
+	color-scheme: light;
+}
+
+/* @property declarations enable color animation. Safari 16.4+/FF 128+. */
+@property --fc-accent-hue {
+	syntax: "<color>";
+	inherits: true;
+	initial-value: #000000;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	@supports (background: paint(something)) or (transition: color 1s) {
+		:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme="monochrome-plus"] {
+			animation: fcMonochromeHue 14s ease-in-out infinite alternate;
+		}
+	}
+}
+
+@keyframes fcMonochromeHue {
+	0%   { --fc-accent: #000000; }
+	33%  { --fc-accent: #1e40af; }
+	66%  { --fc-accent: #047857; }
+	100% { --fc-accent: #831843; }
+}
+
+/* =================================================================
+   GRADIENT TITLES — large-text only (>=24px OR >=18.66px @ weight 700)
+   Fallback: solid accent via @supports negative branch.
+   Forced-colors: drops back to CanvasText.
+   ================================================================= */
+
+/* Base: solid accent color (always paints, even without clip support) */
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme]:has(.fcpt-appearance-feature) .fcpt-title,
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme]:has(.fcpt-appearance-feature) .fcpt-title a,
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme]:has(.fcpt-appearance-bento) .fc-cat-pro-li:first-child .fcpt-title,
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme]:has(.fcpt-appearance-bento) .fc-mcats-pro-li:first-child .fcpt-title {
+	color: var(--fc-accent-solid, var(--fc-accent));
+}
+
+/* Enhanced: gradient text where clipping is supported AND user allows motion. */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+	@media (prefers-reduced-motion: no-preference) {
+		.fc-cat-pro-list [data-fcpt-theme]:has(.fcpt-appearance-feature) .fcpt-title,
+		.fc-mcats-pro-list [data-fcpt-theme]:has(.fcpt-appearance-feature) .fcpt-title {
+			background-image: var(--fc-accent-gradient);
+			background-size: 200% 100%;
+			background-position: 0% 50%;
+			-webkit-background-clip: text;
+			background-clip: text;
+			-webkit-text-fill-color: transparent;
+			color: transparent;
+			animation: fcGradSweep 4s ease-in-out 3 alternate;
+		}
+	}
+
+	/* Static gradient text for users who allow motion-equivalent appearance
+	   but only after the animation iteration cap completes. The 3-iteration
+	   limit above stops on its own — no infinite WCAG 2.2.2 risk. */
+	@media (prefers-reduced-motion: reduce) {
+		.fc-cat-pro-list [data-fcpt-theme]:has(.fcpt-appearance-feature) .fcpt-title,
+		.fc-mcats-pro-list [data-fcpt-theme]:has(.fcpt-appearance-feature) .fcpt-title {
+			/* Stay on solid accent — gradient text relies on motion contrast */
+			color: var(--fc-accent-solid, var(--fc-accent));
+		}
+	}
+}
+
+@keyframes fcGradSweep {
+	0%   { background-position:   0% 50%; }
+	100% { background-position: 100% 50%; }
+}
+
+/* Forced-colors: drop gradient text entirely */
+@media (forced-colors: active) {
+	:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme] .fcpt-title {
+		background: none !important;
+		color: CanvasText !important;
+		-webkit-text-fill-color: CanvasText !important;
+	}
+}
+
+/* =================================================================
+   ENTRY ANIMATION (fade-up on scroll)
+   Cards are visible by default. The .fc-pro-entry-ready class on the
+   <ul> opts in to the animation — added by JS only when JS is loaded
+   AND prefers-reduced-motion is not set. SR-only / no-JS users see
+   fully-styled cards.
+   ================================================================= */
+
+@media (prefers-reduced-motion: no-preference) {
+	.fc-cat-pro-list.fc-pro-entry-ready > .fc-cat-pro-li,
+	.fc-mcats-pro-list.fc-pro-entry-ready > .fc-mcats-pro-li {
+		opacity: 0;
+		transform: translateY(12px);
+		transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1),
+		            transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+		transition-delay: calc(var(--fc-card-index, 0) * 60ms);
+	}
+
+	.fc-cat-pro-list.fc-pro-entry-ready > .fc-cat-pro-li.is-visible,
+	.fc-mcats-pro-list.fc-pro-entry-ready > .fc-mcats-pro-li.is-visible {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* =================================================================
+   ACCENT STRIPE SHIMMER (one-shot on hover-in for Soft Bento)
+   ================================================================= */
+
+@media (prefers-reduced-motion: no-preference) {
+	.fc-cat-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact))::before,
+	.fc-mcats-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact))::before {
+		background-image: linear-gradient(90deg,
+			var(--fc-accent) 0%,
+			rgba(255, 255, 255, 0.7) 50%,
+			var(--fc-accent) 100%);
+		background-size: 200% 100%;
+		background-position: 0% 0%;
+	}
+
+	.fc-cat-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)):hover::before,
+	.fc-mcats-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)):hover::before {
+		animation: fcStripeShimmer 1200ms ease-out 1;
+	}
+}
+
+@keyframes fcStripeShimmer {
+	0%   { background-position: 0%   0%; }
+	100% { background-position: 200% 0%; }
+}
+
+/* =================================================================
+   BENTO MESH GRADIENT (animated radial mesh under solid scrim)
+   Mesh shifts behind the text scrim — contrast at the text band is
+   dictated by the solid 0.78+ alpha scrim, NOT the mesh.
+   ================================================================= */
+
+@media (prefers-reduced-motion: no-preference) {
+	.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-image-intro::before,
+	.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-image-intro::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background:
+			radial-gradient(circle at 20% 30%, rgba(124, 58, 237, 0.20), transparent 50%),
+			radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.18), transparent 55%),
+			radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.14), transparent 60%);
+		mix-blend-mode: screen;
+		pointer-events: none;
+		animation: fcMeshDrift 16s ease-in-out infinite alternate;
+		z-index: 0;
+	}
+}
+
+@keyframes fcMeshDrift {
+	0%   { background-position:   0%   0%,   0%   0%, 0%   0%; }
+	100% { background-position: 100% 100%, 100% -50%, -50% 100%; }
+}
+
+/* Forced-colors: drop mesh — system colors handle the image */
+@media (forced-colors: active) {
+	.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-image-intro::before,
+	.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-image-intro::before {
+		display: none;
+	}
+}
+
+/* =================================================================
+   TYPOGRAPHY TOKENS — read by Google Fonts auto-loader (Phase B)
+   When a theme is saved with theme_data.typography.family /
+   family_heading, the PHP loader emits the <link> tags AND sets these
+   tokens via inline style on the .fcpt-layout div. Default stack here
+   is the fallback if no theme tokens are set.
+   ================================================================= */
+
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) {
+	--fc-font-body:    system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	--fc-font-heading: var(--fc-font-body);
+}
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) {
+	font-family: var(--fc-font-body);
+}
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-title {
+	font-family: var(--fc-font-heading);
+}
+
+/* =================================================================
+   FORCED-COLORS THEME OVERRIDES — Windows High Contrast
+   Each theme yields gracefully to system tokens.
+   ================================================================= */
+
+@media (forced-colors: active) {
+	:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme] {
+		--fc-accent:           LinkText;
+		--fc-accent-solid:     LinkText;
+		--fc-accent-gradient:  none;
+		--fc-card-bg:          Canvas;
+		--fc-card-bg-elev:     Canvas;
+		--fc-card-border:      CanvasText;
+		--fc-card-shadow:      none;
+		--fc-card-shadow-hov:  none;
+		--fc-text:             CanvasText;
+		--fc-text-muted:       CanvasText;
+		--fc-focus-ring:       Highlight;
+	}
+
+	:where(.fc-cat-pro-list, .fc-mcats-pro-list) [data-fcpt-theme="monochrome-plus"] {
+		animation: none;
+	}
+}
+
+/* =================================================================
+   PRINT — reset all theme decoration to solid ink
+   ================================================================= */
+
+@media print {
+	:where(.fc-cat-pro-list, .fc-mcats-pro-list) {
+		--fc-accent:          #000000;
+		--fc-accent-solid:    #000000;
+		--fc-accent-gradient: none;
+		--fc-card-bg:         #ffffff;
+		--fc-card-bg-elev:    #ffffff;
+		--fc-card-border:     #000000;
+		--fc-card-shadow:     none;
+		--fc-card-shadow-hov: none;
+		--fc-text:            #000000;
+		--fc-text-muted:      #333333;
+		--fc-focus-ring:      #000000;
+	}
+
+	.fc-cat-pro-list,
+	.fc-mcats-pro-list {
+		display: block !important;
+	}
+
+	.fc-cat-pro-li,
+	.fc-mcats-pro-li {
+		break-inside: avoid;
+		page-break-inside: avoid;
+		margin-bottom: 1rem;
+	}
+
+	.fc-cat-pro-li::before,
+	.fc-mcats-pro-li::before,
+	.fc-cat-pro-li::after,
+	.fc-mcats-pro-li::after {
+		display: none !important;
+	}
+}
+

@@ -127,10 +127,55 @@
 		);
 	}
 
+	/* ── Entry animation (fade-up on scroll) ──────────────────────
+	 * Cards are visible by default. We opt-in to the animation by
+	 * adding `.fc-pro-entry-ready` on the <ul> — CSS uses that class
+	 * to put cards into the pre-animation state (opacity 0). We only
+	 * add the class when:
+	 *   - JS is loaded (this script runs)
+	 *   - User does NOT prefer reduced motion
+	 *   - IntersectionObserver is available
+	 *
+	 * Then IntersectionObserver toggles `.is-visible` per card as it
+	 * scrolls into view. Cards already in viewport on init get the
+	 * class immediately (no flash).
+	 */
+	function setupEntryAnimation(list) {
+		if (typeof IntersectionObserver === "undefined") return;
+
+		var mq = typeof window !== "undefined" && window.matchMedia
+			? window.matchMedia("(prefers-reduced-motion: reduce)")
+			: null;
+		if (mq && mq.matches) return;
+
+		list.classList.add("fc-pro-entry-ready");
+		var items = list.children;
+		for (var i = 0; i < items.length; i++) {
+			items[i].style.setProperty("--fc-card-index", String(i));
+		}
+
+		var io = new IntersectionObserver(
+			function (entries) {
+				for (var i = 0; i < entries.length; i++) {
+					if (entries[i].isIntersecting) {
+						entries[i].target.classList.add("is-visible");
+						io.unobserve(entries[i].target);
+					}
+				}
+			},
+			{ rootMargin: "0px 0px -8% 0px", threshold: 0.05 }
+		);
+
+		for (var j = 0; j < items.length; j++) {
+			io.observe(items[j]);
+		}
+	}
+
 	function init() {
 		var lists = document.querySelectorAll(LIST_SELECTOR);
 		for (var i = 0; i < lists.length; i++) {
 			wireList(lists[i]);
+			setupEntryAnimation(lists[i]);
 		}
 	}
 
