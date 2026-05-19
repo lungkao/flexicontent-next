@@ -2533,6 +2533,8 @@ var $proxy_option = null;
 		// > category > type > global), render it instead of the legacy
 		// template. Falls back to legacy on any failure.
 		$_proLayout = null;
+		$_proDebug  = (int) $jinput->getInt('proDebug', 0) === 1
+			&& \Joomla\CMS\Factory::getUser()->authorise('core.admin');
 		if (is_file(JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Resolver.php')
 			&& is_file(JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Renderer.php'))
 		{
@@ -2541,6 +2543,23 @@ var $proxy_option = null;
 
 			$_proContext = \FlexicontentProTemplateResolver::contextFromItem($this->item, 'item');
 			$_proLayout  = \FlexicontentProTemplateResolver::resolve($_proContext);
+		}
+
+		// Diagnostic — admin-only, only when ?proDebug=1. Emits an HTML
+		// comment so editors can see (View Source) which rows the Resolver
+		// considered and which one was picked, or why nothing applied.
+		// Read-only: visible markup unchanged, no a11y impact.
+		if ($_proDebug) {
+			$_dbg = \FlexicontentProTemplateResolver::getLastDebug();
+			if ($_dbg !== null) {
+				$_dbgJson = json_encode($_dbg, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+				echo "\n<!-- FLEXI ProTemplate Debug (item view)\n" . str_replace('-->', '--&gt;', (string) $_dbgJson) . "\n-->\n";
+				\Joomla\CMS\Log\Log::add(
+					'ProTemplate item resolve: ' . json_encode($_dbg, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+					\Joomla\CMS\Log\Log::INFO,
+					'com_flexicontent'
+				);
+			}
 		}
 
 		if ($_proLayout && !empty($_proLayout->layout_decoded))

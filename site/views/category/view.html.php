@@ -1137,17 +1137,67 @@ class FlexicontentViewCategory extends \Joomla\CMS\MVC\View\HtmlView
 		// renderer would emit empty output and short-circuit the legacy
 		// fallback. Default-deny: only fire for empty or 'category' layout.
 		$_proLayout = null;
+		$_proMcatsItems = null;            // populated on mcats per-item path
 		$_proUrlLayout = $jinput->getCmd('layout', '');
-		if (in_array($_proUrlLayout, ['', 'category'], true)
-			&& is_file(JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Resolver.php')
-			&& is_file(JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Renderer.php'))
-		{
+		$_proDebug  = (int) $jinput->getInt('proDebug', 0) === 1
+			&& \Joomla\CMS\Factory::getUser()->authorise('core.admin');
+		$_proHelpersExist =
+			is_file(JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Resolver.php')
+			&& is_file(JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Renderer.php');
+
+		if ($_proHelpersExist) {
 			require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Resolver.php';
 			require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Renderer.php';
+		}
 
+		if ($_proHelpersExist && in_array($_proUrlLayout, ['', 'category'], true))
+		{
 			$_proCat     = $this->category ?? null;
 			$_proContext = \FlexicontentProTemplateResolver::contextFromCategory($_proCat, 'category');
 			$_proLayout  = \FlexicontentProTemplateResolver::resolve($_proContext);
+		}
+		elseif ($_proHelpersExist && $_proUrlLayout === 'mcats' && !empty($this->items))
+		{
+			// mcats per-item Pro Layout: resolve item-scope Pro Layout for
+			// each item in the multi-category result. If at least one item
+			// resolves, ALL items in the list render via Pro Templates so
+			// the visual treatment stays consistent. Items with no match
+			// fall back to a minimal title+introtext teaser. Rendered in
+			// 'category' context so no <h1> is emitted (the page <h1> is
+			// owned by the menu pathway above the items list).
+			$_proMcatsItems = [];
+			foreach ($this->items as $_proItem) {
+				$_proItemCtx    = \FlexicontentProTemplateResolver::contextFromItem($_proItem, 'item');
+				$_proItemLayout = \FlexicontentProTemplateResolver::resolve($_proItemCtx);
+				$_proMcatsItems[] = ['item' => $_proItem, 'layout' => $_proItemLayout];
+			}
+			$_anyMatched = false;
+			foreach ($_proMcatsItems as $_pmi) {
+				if ($_pmi['layout']) { $_anyMatched = true; break; }
+			}
+			if (!$_anyMatched) {
+				// No Pro Layout matches any item — drop the mcats path and
+				// let the legacy mcats template render.
+				$_proMcatsItems = null;
+			}
+		}
+
+		// Diagnostic — admin-only, only when ?proDebug=1. Same pattern as
+		// item view: emits a <!-- ... --> comment editors can inspect via
+		// View Source. No visible markup, no a11y impact.
+		if ($_proDebug) {
+			$_dbg = class_exists('FlexicontentProTemplateResolver', false)
+				? \FlexicontentProTemplateResolver::getLastDebug()
+				: null;
+			if ($_dbg !== null) {
+				$_dbgJson = json_encode($_dbg, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+				echo "\n<!-- FLEXI ProTemplate Debug (category view)\n" . str_replace('-->', '--&gt;', (string) $_dbgJson) . "\n-->\n";
+				\Joomla\CMS\Log\Log::add(
+					'ProTemplate category resolve: ' . json_encode($_dbg, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+					\Joomla\CMS\Log\Log::INFO,
+					'com_flexicontent'
+				);
+			}
 		}
 
 		if ($_proLayout && !empty($_proLayout->layout_decoded))
@@ -1186,8 +1236,49 @@ class FlexicontentViewCategory extends \Joomla\CMS\MVC\View\HtmlView
 				}
 			}
 		}
+		elseif ($_proMcatsItems !== null)
+		{
+			// mcats Pro Layout path — render the items list as a <ul>/<li>
+			// feed. Each <li> gets a per-item Renderer output in 'category'
+			// context (no <h1> emitted; headings clamp to h2+). The Renderer
+			// already wraps non-item context in <article>, so the document
+			// outline becomes: ul > li > article > h2 — a valid teaser feed.
+			try {
+				echo '<ul class="fc-mcats-pro-list">';
+				$_proRenderer = new \FlexicontentProTemplateRenderer();
+				foreach ($_proMcatsItems as $_pmi) {
+					$_pmiItem   = $_pmi['item'];
+					$_pmiLayout = $_pmi['layout'];
+					echo '<li class="fc-mcats-pro-li">';
+					if ($_pmiLayout && !empty($_pmiLayout->layout_decoded)) {
+						echo $_proRenderer->render($_pmiLayout->layout_decoded, $_pmiItem, 'category');
+					} else {
+						// Minimal teaser for items with no Pro Layout match.
+						// Keeps visual rhythm of the list without forcing a
+						// legacy template loop.
+						$_pmiTitle = (string) ($_pmiItem->title ?? '');
+						$_pmiIntro = (string) ($_pmiItem->introtext ?? '');
+						echo '<article class="fc-mcats-pro-fallback">'
+							. '<h2 class="fc-mcats-pro-title">' . htmlspecialchars($_pmiTitle, ENT_QUOTES, 'UTF-8') . '</h2>'
+							. ($_pmiIntro !== '' ? '<div class="fc-mcats-pro-intro">' . $_pmiIntro . '</div>' : '')
+							. '</article>';
+					}
+					echo '</li>';
+				}
+				echo '</ul>';
+			} catch (\Throwable $_proErr) {
+				$_proMcatsItems = null;
+				if ($print_logging_info) {
+					\Joomla\CMS\Log\Log::add(
+						'Pro Templates renderer error (mcats): ' . $_proErr->getMessage(),
+						\Joomla\CMS\Log\Log::WARNING,
+						'com_flexicontent'
+					);
+				}
+			}
+		}
 
-		if (!$_proLayout)
+		if (!$_proLayout && $_proMcatsItems === null)
 		{
 			parent::display($tpl);
 		}

@@ -100,12 +100,17 @@ class FlexicontentProTemplateRenderer
 			$sectionsHtml .= $this->renderSection($section);
 		}
 
-		// Wrap in <article> for item view (single landmark). Category/module
-		// callers may already be inside another <article> — use a <div> there.
-		$contentWrapTag      = $this->context === 'item' ? 'article' : 'div';
-		$contentWrapAttribs  = $this->context === 'item'
+		// Wrap selection:
+		//   item     → <article> (single full-page landmark)
+		//   category → <article> (per-item teaser in category/mcats list;
+		//              valid to nest <article> inside <li>; surfaces item
+		//              boundaries to AT without role override)
+		//   module   → <div>     (module callers may already sit inside an
+		//              <article>; avoid nested-landmark double-announce)
+		$contentWrapTag = $this->context === 'module' ? 'div' : 'article';
+		$contentWrapAttribs = $this->context === 'item'
 			? ' class="fcpt-item" data-item-id="' . (int) ($item->id ?? 0) . '"'
-			: ' class="fcpt-item-fragment"';
+			: ' class="fcpt-item-fragment" data-item-id="' . (int) ($item->id ?? 0) . '"';
 
 		return '<div class="fcpt-layout"'
 			. ' data-fcpt-theme="'   . $theme   . '"'
@@ -262,14 +267,19 @@ class FlexicontentProTemplateRenderer
 		$widthKey   = $variant . '_width';
 		$heightKey  = $variant . '_height';
 
-		// Alt source priority: explicit alt → empty (if explicitly empty
-		// decorative flag) → fallback to item title only when alt is null.
-		// Joomla often stores '' for "no alt set" which we treat as null
-		// (fallback). A true decorative flag has not been historically
-		// modeled; future enhancement can add `image_*_alt_decorative`.
+		// Alt source priority by context:
+		//   item     → explicit alt → fallback to item title (avoid empty
+		//              alt on a single hero image — title is the only name
+		//              source the page provides for the image).
+		//   category/module → explicit alt → empty alt (decorative). The
+		//              teaser's adjacent <h2 class="fcpt-title"> already
+		//              names the card to AT; reusing the title as alt would
+		//              double-announce ("Article Title, Article Title").
 		$alt = $images[$altKey] ?? null;
 		if ($alt === null || $alt === '') {
-			$alt = (string) ($this->item->title ?? '');
+			$alt = $this->context === 'item'
+				? (string) ($this->item->title ?? '')
+				: '';
 		}
 		$caption = trim((string) ($images[$captionKey] ?? ''));
 		$width   = isset($images[$widthKey])  ? (int) $images[$widthKey]  : null;

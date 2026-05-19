@@ -32,6 +32,13 @@ class FlexicontentProTemplateResolver
 	protected static $cache = [];
 
 	/**
+	 * Debug payload from the most recent resolve() call. Hookups read this
+	 * via getLastDebug() when ?proDebug=1 is on the URL so editors can see
+	 * why a saved layout did or did not apply. Production callers ignore it.
+	 */
+	protected static $lastDebug = null;
+
+	/**
 	 * Resolve the Pro Layout (or null if no match) for a render context.
 	 *
 	 * @param array $context [
@@ -97,6 +104,7 @@ class FlexicontentProTemplateResolver
 			)
 			->order($qn('ordering') . ' ASC, ' . $qn('id') . ' ASC');
 
+		$sqlText    = (string) $query;
 		$candidates = $db->setQuery($query)->loadObjectList() ?: [];
 
 		// Priority weights — lower = wins. Tied candidates fall back to
@@ -111,6 +119,7 @@ class FlexicontentProTemplateResolver
 
 		$best     = null;
 		$bestRank = PHP_INT_MAX;
+		$skipped  = [];
 
 		foreach ($candidates as $row) {
 			// Defensive: confirm the assignment is actually applicable.
@@ -118,6 +127,7 @@ class FlexicontentProTemplateResolver
 			// SQL but not by intent: e.g. category row pointing at a
 			// different catid that happens to share OR-matching.)
 			if (!self::isApplicable($row, $context)) {
+				$skipped[] = ['id' => (int) $row->id, 'reason' => 'isApplicable=false'];
 				continue;
 			}
 
@@ -136,9 +146,48 @@ class FlexicontentProTemplateResolver
 			}
 		}
 
+		// Capture a debug snapshot for the ?proDebug=1 admin diagnostic.
+		// Trimmed to keep memory footprint modest on pages with many rows.
+		self::$lastDebug = [
+			'context'    => $context,
+			'view_scope' => $viewScope,
+			'sql'        => $sqlText,
+			'candidates' => array_map(static function ($r) {
+				return [
+					'id'               => (int) $r->id,
+					'title'            => (string) ($r->title ?? ''),
+					'assignment_type'  => (string) ($r->assignment_type ?? ''),
+					'assignment_value' => (string) ($r->assignment_value ?? ''),
+					'catid'            => (int) ($r->catid ?? 0),
+					'type_id'          => (int) ($r->type_id ?? 0),
+					'view_scope'       => (string) ($r->view_scope ?? ''),
+					'state'            => (int) ($r->state ?? 0),
+					'ordering'         => (int) ($r->ordering ?? 0),
+					'layout_bytes'     => strlen((string) ($r->layout_data ?? '')),
+				];
+			}, $candidates),
+			'skipped'    => $skipped,
+			'picked'     => $best ? ['id' => (int) $best->id, 'assignment_type' => $best->assignment_type, 'rank' => $bestRank] : null,
+			'reason'     => $best
+				? 'matched'
+				: (empty($candidates) ? 'no rows matched SQL (check state=1, view_scope, assignment columns)' : 'all candidates failed isApplicable check'),
+		];
+
 		self::$cache[$cacheKey] = $best;
 
 		return $best;
+	}
+
+	/**
+	 * Debug accessor — returns context, SQL, candidates, picked row, and a
+	 * human-readable reason from the last resolve() call. Hookups call this
+	 * when ?proDebug=1 is on the URL to emit a diagnostic comment.
+	 *
+	 * @return array|null  null if resolve() has not run yet
+	 */
+	public static function getLastDebug(): ?array
+	{
+		return self::$lastDebug;
 	}
 
 	/**
@@ -226,6 +275,7 @@ class FlexicontentProTemplateResolver
 	 */
 	public static function clearCache(): void
 	{
-		self::$cache = [];
+		self::$cache     = [];
+		self::$lastDebug = null;
 	}
 }
