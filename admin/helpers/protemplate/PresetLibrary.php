@@ -301,6 +301,7 @@ class FlexicontentProTemplatePresetLibrary
 				self::row($k, 2, [
 					self::col($k, 2, 12, [
 						self::article('title',     'h1',   'display'),
+						self::article('created',   'time', 'muted'),
 						self::article('introtext', 'div',  'lead'),
 					]),
 				]),
@@ -338,6 +339,7 @@ class FlexicontentProTemplatePresetLibrary
 			self::section($k, 1, 'Compact item', 'plain', [
 				self::row($k, 1, [
 					self::col($k, 1, 12, [
+						self::article('image_intro', 'figure', 'thumbnail', 'fcpt-compact-thumb'),
 						self::article('title',     'h1',   'default'),
 						self::article('created',   'time', 'muted'),
 						self::article('author',    'span', 'muted'),
@@ -379,28 +381,21 @@ class FlexicontentProTemplatePresetLibrary
 	{
 		$k = 'cat-grid';
 
+		// Category context: renderer loops items and renders this layout once
+		// per item, so this is the per-item card template. Title is clamped to
+		// h2 in category context; image alt is forced empty (decorative because
+		// adjacent title names the card). Grid columns-per-row is controlled by
+		// the surrounding category list, not by this template.
 		$layout = self::layout([
-			self::section($k, 1, 'Category header', 'hero', [
+			self::section($k, 1, 'Card', 'plain', [
 				self::row($k, 1, [
 					self::col($k, 1, 12, [
-						self::article('title',     'h1',  'display'),
-						self::article('introtext', 'div', 'lead'),
+						self::article('image_intro', 'figure', 'card', 'fcpt-card-image'),
+						self::article('title',       'h2',     'default'),
+						self::article('created',     'time',   'muted'),
+						self::article('introtext',   'div',    'default'),
 					]),
 				]),
-			]),
-			self::section($k, 2, 'Items grid', 'plain', [
-				self::row($k, 2, [
-					self::col($k, 2, 4, [
-						self::heading('Featured items', 'h2', 'default'),
-						self::text('Items grid renders here — column width controls cards-per-row.', 'p', 'muted'),
-					]),
-					self::col($k, 3, 4, [
-						self::text('Card slot', 'div', 'default'),
-					]),
-					self::col($k, 4, 4, [
-						self::text('Card slot', 'div', 'default'),
-					]),
-				], 'bento'),
 			]),
 		], 'clean', 'default', 'normal');
 
@@ -419,33 +414,21 @@ class FlexicontentProTemplatePresetLibrary
 	{
 		$k = 'cat-featured';
 
+		// Category context: rendered once per item. Hero row pairs the
+		// item's image_intro with title + created + introtext as a
+		// magazine-style featured card. Renderer clamps title heading to h2.
 		$layout = self::layout([
-			self::section($k, 1, 'Intro', 'plain', [
+			self::section($k, 1, 'Featured card', 'feature', [
 				self::row($k, 1, [
-					self::col($k, 1, 12, [
-						self::article('title',     'h1',  'display'),
-						self::article('introtext', 'div', 'lead'),
+					self::col($k, 1, 7, [
+						self::article('image_intro', 'figure', 'display', 'fcpt-card-image'),
 					]),
-				]),
-			]),
-			self::section($k, 2, 'Hero item', 'feature', [
-				self::row($k, 2, [
-					self::col($k, 2, 7, [
-						self::article('image_intro', 'figure', 'display'),
-					]),
-					self::col($k, 3, 5, [
-						self::heading('Featured story', 'h2', 'default'),
-						self::text('Top item from category renders here.', 'p', 'lead'),
+					self::col($k, 2, 5, [
+						self::article('title',     'h2',   'default'),
+						self::article('created',   'time', 'muted'),
+						self::article('introtext', 'div',  'lead'),
 					]),
 				], 'media'),
-			]),
-			self::section($k, 3, 'List', 'plain', [
-				self::row($k, 3, [
-					self::col($k, 4, 12, [
-						self::heading('More from this category', 'h2', 'default'),
-						self::text('Items list renders below.', 'p', 'muted'),
-					]),
-				], 'stacked'),
 			]),
 		], 'editorial', 'default', 'normal');
 
@@ -464,37 +447,21 @@ class FlexicontentProTemplatePresetLibrary
 	{
 		$k = 'cat-magazine';
 
+		// Category context: rendered once per item. Magazine-style teaser
+		// pairs image_intro with title + created + introtext. Renderer
+		// clamps title heading to h2 in category context.
 		$layout = self::layout([
-			self::section($k, 1, 'Header', 'band', [
+			self::section($k, 1, 'Magazine card', 'bento', [
 				self::row($k, 1, [
-					self::col($k, 1, 12, [
-						self::article('title', 'h1', 'display'),
+					self::col($k, 1, 8, [
+						self::article('image_intro', 'figure', 'display', 'fcpt-card-image'),
+						self::article('title',       'h2',     'display'),
 					]),
-				]),
-			]),
-			self::section($k, 2, 'Bento mix', 'bento', [
-				self::row($k, 2, [
-					self::col($k, 2, 8, [
-						self::heading('Lead story', 'h2', 'default'),
-						self::text('Primary feature renders here.', 'p', 'lead'),
-					]),
-					self::col($k, 3, 4, [
-						self::heading('Editor pick', 'h3', 'default'),
-						self::text('Secondary item slot.', 'p', 'muted'),
+					self::col($k, 2, 4, [
+						self::article('created',   'time', 'muted'),
+						self::article('introtext', 'div',  'default'),
 					]),
 				], 'bento'),
-				self::row($k, 3, [
-					self::col($k, 4, 4, [self::text('Card slot 1', 'div', 'default')]),
-					self::col($k, 5, 4, [self::text('Card slot 2', 'div', 'default')]),
-					self::col($k, 6, 4, [self::text('Card slot 3', 'div', 'default')]),
-				], 'bento'),
-			]),
-			self::section($k, 3, 'Description', 'plain', [
-				self::row($k, 4, [
-					self::col($k, 7, 12, [
-						self::article('introtext', 'div', 'default'),
-					]),
-				]),
 			]),
 		], 'contrast', 'wide', 'normal');
 
@@ -513,21 +480,19 @@ class FlexicontentProTemplatePresetLibrary
 	{
 		$k = 'cat-compact';
 
+		// Category context: rendered once per item. Compact row pairs a
+		// thumbnail with title + created + introtext. Renderer clamps title
+		// to h2 in category context.
 		$layout = self::layout([
-			self::section($k, 1, 'Compact header', 'plain', [
+			self::section($k, 1, 'Compact row', 'plain', [
 				self::row($k, 1, [
-					self::col($k, 1, 12, [
-						self::article('title',     'h1',  'default'),
-						self::article('introtext', 'div', 'muted'),
-						self::separator(),
+					self::col($k, 1, 3, [
+						self::article('image_intro', 'figure', 'thumbnail', 'fcpt-card-thumb'),
 					]),
-				]),
-			]),
-			self::section($k, 2, 'List', 'plain', [
-				self::row($k, 2, [
-					self::col($k, 2, 12, [
-						self::heading('Items', 'h2', 'default'),
-						self::text('Dense items list renders here.', 'p', 'muted'),
+					self::col($k, 2, 9, [
+						self::article('title',     'h2',   'default'),
+						self::article('created',   'time', 'muted'),
+						self::article('introtext', 'div',  'muted'),
 					]),
 				], 'compact'),
 			]),

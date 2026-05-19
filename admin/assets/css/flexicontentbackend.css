@@ -6329,3 +6329,124 @@ html[lang^="th"] #j-main-container .fc_field .fw-lighter {
 #j-main-container .fc_field tt {
 	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+
+/* ──────────────────────────────────────────────────────────────────
+ * 6.1.0-beta.8 — Prominent CTA buttons + dashboard footer panel
+ *
+ * Driven by user feedback that key actions weren't visually obvious
+ * enough on a busy dashboard:
+ *
+ *   .fc-runall-cta        — postinstall "Run all pending tasks"
+ *   .fcpt-hero-cta        — Pro Templates "Create from preset" +
+ *                            "Manage Themes" hero CTAs
+ *   .fc-board-set--footer — Update check section now at the bottom
+ *
+ * Accessibility: WCAG 2.5.5 (Target Size 44x44 min), 1.4.11 (Non-text
+ * Contrast 3:1 for focus ring), 1.4.3 (4.5:1 text contrast). Reduced
+ * motion respected.
+ * ──────────────────────────────────────────────────────────────── */
+
+.fc-runall-cta {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5em;
+	min-height: 44px;
+	padding: 12px 28px;
+	font-size: 1.1rem;
+	font-weight: 600;
+	line-height: 1.2;
+	border-radius: 8px;
+	box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+	letter-spacing: 0.01em;
+	transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fc-runall-cta:hover,
+.fc-runall-cta:focus-visible {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
+}
+
+.fc-runall-cta:focus-visible {
+	outline: 3px solid #2563eb;
+	outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.fc-runall-cta { transition: none; }
+	.fc-runall-cta:hover,
+	.fc-runall-cta:focus-visible { transform: none; }
+}
+
+.fcpt-stats-cta--hero {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin-top: 20px;
+}
+
+.fcpt-hero-cta {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.6em;
+	min-height: 56px;
+	min-width: 200px;
+	padding: 14px 28px;
+	font-size: 1.15rem;
+	font-weight: 600;
+	line-height: 1.25;
+	border-radius: 10px;
+	letter-spacing: 0.01em;
+	transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+}
+
+.fcpt-hero-cta-icon { font-size: 1.4em; line-height: 1; }
+.fcpt-hero-cta-text { display: inline-block; }
+
+.fcpt-hero-cta--primary {
+	background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+	border: 1px solid #1d4ed8;
+	color: #ffffff;
+	box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+}
+
+.fcpt-hero-cta--primary:hover,
+.fcpt-hero-cta--primary:focus-visible {
+	background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+	color: #ffffff;
+	transform: translateY(-1px);
+	box-shadow: 0 5px 14px rgba(37, 99, 235, 0.35);
+}
+
+.fcpt-hero-cta--secondary {
+	background: #ffffff;
+	border: 2px solid #0f172a;
+	color: #0f172a;
+	box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.fcpt-hero-cta--secondary:hover,
+.fcpt-hero-cta--secondary:focus-visible {
+	background: #f8fafc;
+	border-color: #1d4ed8;
+	color: #1d4ed8;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+.fcpt-hero-cta:focus-visible {
+	outline: 3px solid #2563eb;
+	outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.fcpt-hero-cta { transition: none; }
+	.fcpt-hero-cta:hover,
+	.fcpt-hero-cta:focus-visible { transform: none; }
+}
+
+.fc-board-set--footer {
+	margin-top: 32px;
+	padding-top: 24px;
+	border-top: 1px solid #e2e8f0;
+}

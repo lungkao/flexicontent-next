@@ -42,6 +42,12 @@ $itemCount     = (int)    $this->itemCount;
 $categoryCount = (int)    $this->categoryCount;
 $presets       = is_array($this->presets) ? $this->presets : [];
 $groups        = is_array($this->groups)  ? $this->groups  : [];
+
+// "Change layout" flow: when the editor lands here via the toolbar
+// "Change layout" button on an existing template, the URL carries
+// ?replace_id={id}. We forward it through both forms so the submit
+// handler updates the existing row instead of inserting a new one.
+$replaceId = (int) \Joomla\CMS\Factory::getApplication()->input->getInt('replace_id', 0);
 ?>
 
 <div class="fcpt-chooser-shell">
@@ -58,6 +64,9 @@ $groups        = is_array($this->groups)  ? $this->groups  : [];
 		<!-- task field is required by Joomla's toolbar Cancel handler
 		     (Joomla.submitform reads document.adminForm.task) -->
 		<input type="hidden" name="task"   value="">
+		<?php if ($replaceId > 0) : ?>
+		<input type="hidden" name="replace_id" value="<?= $replaceId ?>">
+		<?php endif; ?>
 
 		<header class="fcpt-chooser-header">
 			<h1 tabindex="-1" autofocus class="fcpt-chooser-h1">
@@ -152,6 +161,9 @@ $groups        = is_array($this->groups)  ? $this->groups  : [];
 			<input type="hidden" name="option" value="com_flexicontent">
 			<input type="hidden" name="task"   value="protemplates.createFromPreset">
 			<input type="hidden" name="scope"  value="<?= htmlspecialchars($scope, ENT_QUOTES) ?>">
+			<?php if ($replaceId > 0) : ?>
+			<input type="hidden" name="replace_id" value="<?= $replaceId ?>">
+			<?php endif; ?>
 			<?= HTMLHelper::_('form.token') ?>
 
 			<div class="fcpt-form-row">

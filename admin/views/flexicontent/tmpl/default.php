@@ -526,7 +526,11 @@ $items_task = 'task=items.';
 
 
 		<?php
-		if ( $this->params->get('show_updatecheck', 1) && $this->perms->CanConfig )
+		// Update check moved out of #fc-dash-boardbtns — re-emitted below the
+		// post-install accordion (see "fc-update-check (moved)" marker). The
+		// `false &&` short-circuit keeps the original block in place as a
+		// reference but skips emission here.
+		if ( false && $this->params->get('show_updatecheck', 1) && $this->perms->CanConfig )
 		{
 			$updatecheck_url  = 'index.php?option=com_flexicontent&task=flexicontent.fcversioncompare&format=raw&'. \Joomla\CMS\Session\Session::getFormToken() .'=1';
 			$updatecheck_chk  = \Joomla\CMS\Language\Text::_('FLEXI_UPDATE_CHECK_CHECKING');
@@ -961,6 +965,67 @@ $items_task = 'task=items.';
 			echo \Joomla\CMS\HTML\HTMLHelper::_('bootstrap.endAccordion');
 
 		endif; /* !$skip_sliders */ ?>
+
+
+		<?php
+		// fc-update-check (moved) — emitted at the bottom of the dashboard,
+		// after the post-install accordion, so the page lead-in (quick
+		// buttons) and recovery actions (post-install) come first. Update
+		// check is a passive status panel; placing it last keeps it out of
+		// the way until users need it.
+		if ( $this->params->get('show_updatecheck', 1) && $this->perms->CanConfig )
+		{
+			$updatecheck_url   = 'index.php?option=com_flexicontent&task=flexicontent.fcversioncompare&format=raw&'. \Joomla\CMS\Session\Session::getFormToken() .'=1';
+			$updatecheck_chk   = \Joomla\CMS\Language\Text::_('FLEXI_UPDATE_CHECK_CHECKING');
+			$updatecheck_fail  = \Joomla\CMS\Language\Text::_('FLEXI_UPDATE_CHECK_FAILED');
+			$updatecheck_retry = \Joomla\CMS\Language\Text::_('FLEXI_UPDATE_CHECK_RETRY');
+			$this->document->addScriptDeclaration("
+			(function(\$){
+				var url = '" . $updatecheck_url . "';
+				var loadingTpl = '<div class=\"fc-update-check fc-update-check--loading\" role=\"status\" aria-live=\"polite\">'
+					+ '<span class=\"fc-update-spinner\" aria-hidden=\"true\"></span>'
+					+ '<span class=\"fc-update-msg-text\">" . $updatecheck_chk . "</span>'
+					+ '</div>';
+				var failureTpl = '<div class=\"fc-update-check fc-update-check--error\" role=\"status\">'
+					+ '<span class=\"fc-update-icon icon-warning\" aria-hidden=\"true\"></span>'
+					+ '<div class=\"fc-update-msg\">'
+					+ '<p class=\"fc-update-msg-text\">" . $updatecheck_fail . "</p>'
+					+ '<button type=\"button\" class=\"fc-update-retry\" data-fc-update-retry>'
+					+ '<span class=\"icon-loop\" aria-hidden=\"true\"></span> " . $updatecheck_retry . "'
+					+ '</button>'
+					+ '</div></div>';
+				function runCheck() {
+					var \$box = \$('#displayfversion');
+					\$box.attr('aria-busy', 'true').html(loadingTpl);
+					\$.ajax({
+						url: url,
+						timeout: 10000
+					}).done(function(str){
+						\$box.attr('aria-busy', 'false').html(str);
+						\$box.parent().css('height', 'auto');
+					}).fail(function(){
+						\$box.attr('aria-busy', 'false').html(failureTpl);
+					});
+				}
+				\$(function(){
+					if (\$.trim(\$('#displayfversion').html()) === '') { runCheck(); }
+					\$(document).on('click', '[data-fc-update-retry]', function(e){
+						e.preventDefault();
+						runCheck();
+					});
+				});
+			})(jQuery);
+			");
+			echo '
+			<section class="fc-board-set fc-board-set--wide fc-board-set--footer" aria-labelledby="fc-board-updatecheck">
+				<h2 id="fc-board-updatecheck" class="fc-board-header">'.\Joomla\CMS\Language\Text::_( 'FLEXI_UPDATE_CHECK' ).'</h2>
+				<div class="fc-board-set-inner">
+					<div id="displayfversion" aria-busy="true"></div>
+				</div>
+			</section>
+			';
+		}
+		?>
 
 
 		<?php if (!$hide_fc_license_credits) echo $fc_logo_license; ?>

@@ -85,15 +85,16 @@ $hasAnyFilter = ($f['search'] !== '' || $f['state'] !== '' || $f['view_scope'] !
 		</div>
 	</dl>
 
-	<div class="fcpt-stats-cta">
+	<div class="fcpt-stats-cta fcpt-stats-cta--hero">
 		<a href="<?= Route::_('index.php?option=com_flexicontent&view=protemplate&layout=choose') ?>"
-		   class="btn btn-primary btn-lg">
-			<span aria-hidden="true">⭐</span>
-			<?= Text::_('FLEXI_PROTEMPLATE_CREATE_FROM_PRESET') ?>
+		   class="btn btn-primary btn-lg fcpt-hero-cta fcpt-hero-cta--primary">
+			<span class="fcpt-hero-cta-icon" aria-hidden="true">⭐</span>
+			<span class="fcpt-hero-cta-text"><?= Text::_('FLEXI_PROTEMPLATE_CREATE_FROM_PRESET') ?></span>
 		</a>
 		<a href="<?= Route::_('index.php?option=com_flexicontent&view=prothemes') ?>"
-		   class="btn btn-outline-secondary">
-			🎨 <?= Text::_('FLEXI_PROTHEME_MANAGE') ?>
+		   class="btn btn-outline-secondary btn-lg fcpt-hero-cta fcpt-hero-cta--secondary">
+			<span class="fcpt-hero-cta-icon" aria-hidden="true">🎨</span>
+			<span class="fcpt-hero-cta-text"><?= Text::_('FLEXI_PROTHEME_MANAGE') ?></span>
 		</a>
 	</div>
 </section>

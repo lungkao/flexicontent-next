@@ -305,6 +305,87 @@ class PresetLibraryTest extends TestCase
 		}
 	}
 
+	/* Required element coverage ---------------------------------------- *
+	 *
+	 * Every shipped preset must carry the four content elements that every
+	 * real FLEXIcontent item provides: title, introtext, an image (intro or
+	 * full), and a published date (created). Without these the chooser
+	 * screen ships layouts that render empty cards for users who pick them
+	 * without further editing — defeating the point of starter presets.
+	 *
+	 * Added 6.1.0-beta.7 after user feedback: "ระบบ layout ตัวอย่างควรใส่
+	 * element ที่มีแน่นอนลงไปเลย title introtext images วันที่เผยแพร่ ใส่ไปเลย".
+	 *
+	 * ----------------------------------------------------------------- */
+
+	/**
+	 * Walk a layout and collect every `name` from `article`-type elements.
+	 */
+	private function collectArticleNames(array $layout): array
+	{
+		$names = [];
+		foreach (($layout['sections'] ?? []) as $section) {
+			foreach (($section['rows'] ?? []) as $row) {
+				foreach (($row['cols'] ?? []) as $col) {
+					foreach (($col['elements'] ?? []) as $el) {
+						if (($el['type'] ?? '') === 'article' && isset($el['name'])) {
+							$names[] = $el['name'];
+						}
+					}
+				}
+			}
+		}
+		return $names;
+	}
+
+	public function testEveryPresetDeclaresTitle(): void
+	{
+		foreach (['item', 'category'] as $scope) {
+			foreach (\FlexicontentProTemplatePresetLibrary::getLayoutPresets($scope) as $p) {
+				$names = $this->collectArticleNames($p['layout']);
+				$this->assertContains('title', $names, "Preset {$p['key']} missing required 'title' element");
+			}
+		}
+	}
+
+	public function testEveryPresetDeclaresIntrotext(): void
+	{
+		foreach (['item', 'category'] as $scope) {
+			foreach (\FlexicontentProTemplatePresetLibrary::getLayoutPresets($scope) as $p) {
+				$names = $this->collectArticleNames($p['layout']);
+				$this->assertContains('introtext', $names, "Preset {$p['key']} missing required 'introtext' element");
+			}
+		}
+	}
+
+	public function testEveryPresetDeclaresImage(): void
+	{
+		foreach (['item', 'category'] as $scope) {
+			foreach (\FlexicontentProTemplatePresetLibrary::getLayoutPresets($scope) as $p) {
+				$names = $this->collectArticleNames($p['layout']);
+				$hasImage = in_array('image_intro', $names, true) || in_array('image_full', $names, true);
+				$this->assertTrue(
+					$hasImage,
+					"Preset {$p['key']} missing required image element (image_intro or image_full)"
+				);
+			}
+		}
+	}
+
+	public function testEveryPresetDeclaresPublishDate(): void
+	{
+		foreach (['item', 'category'] as $scope) {
+			foreach (\FlexicontentProTemplatePresetLibrary::getLayoutPresets($scope) as $p) {
+				$names = $this->collectArticleNames($p['layout']);
+				$hasDate = in_array('created', $names, true) || in_array('publish_up', $names, true);
+				$this->assertTrue(
+					$hasDate,
+					"Preset {$p['key']} missing required publish-date element (created or publish_up)"
+				);
+			}
+		}
+	}
+
 	/* Unique keys ------------------------------------------------------ */
 
 	public function testLayoutPresetKeysAreUnique(): void

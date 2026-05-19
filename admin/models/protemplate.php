@@ -271,6 +271,70 @@ class FlexicontentModelProtemplate extends FCModelAdmin
 	}
 
 	/**
+	 * Replace the layout JSON on an existing record with a preset's payload.
+	 *
+	 * Used by the "Change layout" toolbar button: editors who picked the
+	 * wrong preset can swap layouts in place without recreating the row
+	 * (preserves title, assignment, notes). Title and assignment columns
+	 * are NOT touched here — only layout_data, view_scope, modified, and
+	 * modified_by.
+	 *
+	 * @param  int     $id   Existing #__flexicontent_pro_layouts row id
+	 * @param  string  $key  Preset key (or 'blank-item' / 'blank-category')
+	 * @return bool          True on UPDATE success
+	 */
+	public function replaceFromPreset(int $id, string $key): bool
+	{
+		if ($id <= 0) {
+			$this->setError('Invalid record id');
+			return false;
+		}
+
+		require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/PresetLibrary.php';
+
+		if ($key === 'blank-item' || $key === 'blank-category') {
+			$scope  = $key === 'blank-category' ? 'category' : 'item';
+			$layout = ['version' => 2, 'settings' => ['theme' => 'clean', 'width' => 'default', 'spacing' => 'normal', 'themeId' => 0], 'sections' => []];
+		} else {
+			$preset = FlexicontentProTemplatePresetLibrary::getLayoutPreset($key);
+			if (!$preset) {
+				$this->setError('Unknown preset: ' . $key);
+				return false;
+			}
+			$scope  = $preset['scope'];
+			$layout = $preset['layout'];
+		}
+
+		$json = json_encode($layout, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+		if ($json === false) {
+			$this->setError('Failed to encode preset layout');
+			return false;
+		}
+
+		$user = Factory::getUser();
+		$db   = Factory::getDbo();
+		$now  = Factory::getDate()->toSql();
+
+		$query = $db->getQuery(true)
+			->update($db->quoteName('#__flexicontent_pro_layouts'))
+			->set($db->quoteName('layout_data')  . ' = ' . $db->quote($json))
+			->set($db->quoteName('view_scope')   . ' = ' . $db->quote($scope))
+			->set($db->quoteName('modified')     . ' = ' . $db->quote($now))
+			->set($db->quoteName('modified_by')  . ' = ' . (int) $user->id)
+			->where($db->quoteName('id') . ' = ' . (int) $id);
+
+		try {
+			$db->setQuery($query);
+			$db->execute();
+		} catch (\Throwable $e) {
+			$this->setError('Failed to replace preset layout: ' . $e->getMessage());
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Auto-derive assignment columns before persisting.
 	 *
 	 * UI exposes only the two filter dimensions an editor actually thinks

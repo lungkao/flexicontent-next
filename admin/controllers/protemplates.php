@@ -146,6 +146,7 @@ class FlexicontentControllerProtemplates extends FlexicontentControllerBaseAdmin
 		$presetKey = (string) $jinput->getCmd('preset_key', '');
 		$scope     = (string) $jinput->getCmd('scope', 'item');
 		$title     = trim((string) $jinput->getString('title', ''));
+		$replaceId = (int)    $jinput->getInt('replace_id', 0);
 
 		$scope = $scope === 'category' ? 'category' : 'item';
 
@@ -179,7 +180,23 @@ class FlexicontentControllerProtemplates extends FlexicontentControllerBaseAdmin
 
 		/** @var FlexicontentModelProtemplate $model */
 		$model = $this->getModel('protemplate', '', []);
-		$id    = $model->createFromPreset($presetKey, $title);
+
+		// "Change layout" flow: replace_id > 0 means the editor came from
+		// the toolbar "Change layout" button on an existing record. Swap
+		// the layout JSON in place so title/assignment/notes are preserved.
+		if ($replaceId > 0) {
+			$ok = $model->replaceFromPreset($replaceId, $presetKey);
+			if (!$ok) {
+				$app->enqueueMessage($model->getError() ?: Text::_('FLEXI_PRESET_CREATE_FAILED'), 'error');
+				$app->redirect('index.php?option=com_flexicontent&view=protemplate&layout=choose&scope=' . urlencode($scope) . '&replace_id=' . $replaceId);
+				return;
+			}
+			$app->enqueueMessage(Text::_('FLEXI_PRESET_REPLACED_OK'), 'message');
+			$app->redirect('index.php?option=com_flexicontent&view=protemplate&layout=edit&id=' . $replaceId);
+			return;
+		}
+
+		$id = $model->createFromPreset($presetKey, $title);
 
 		if ($id <= 0) {
 			$app->enqueueMessage($model->getError() ?: Text::_('FLEXI_PRESET_CREATE_FAILED'), 'error');

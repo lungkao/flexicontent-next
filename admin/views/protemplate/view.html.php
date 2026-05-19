@@ -90,6 +90,21 @@ class FlexicontentViewProtemplate extends HtmlView
 		);
 		ToolbarHelper::apply('protemplates.apply');
 		ToolbarHelper::save('protemplates.save');
+
+		// "Change layout" button — surfaces the preset chooser for an existing
+		// record so editors who picked the wrong preset can swap layouts
+		// without recreating the row (and losing assignment/title settings).
+		// Hidden for new records: no row to replace yet.
+		// Carries replace_id so the chooser's createFromPreset handler updates
+		// in place instead of inserting a new row.
+		if (!$isNew) {
+			$replaceUrl = 'index.php?option=com_flexicontent&view=protemplate&layout=choose&replace_id=' . (int) $id;
+			$toolbar = \Joomla\CMS\Toolbar\Toolbar::getInstance('toolbar');
+			$toolbar->linkButton('protemplate-change-layout', 'FLEXI_PROTEMPLATE_CHANGE_LAYOUT')
+				->url($replaceUrl)
+				->icon('icon-refresh');
+		}
+
 		ToolbarHelper::cancel('protemplates.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
 
 		parent::display($tpl);

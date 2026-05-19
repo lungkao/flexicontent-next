@@ -407,7 +407,7 @@ jQuery(document).ready(function() {
 
 <?php if ($_fc_pending_count > 0): ?>
 <div class="fc-postinstall-actions" style="margin:10px 0 14px 10px;">
-	<a id="fc-runall-pending" class="fc_button fc_action" href="javascript:;"
+	<a id="fc-runall-pending" class="fc_button fc_action fc-runall-cta" href="javascript:;"
 		role="button"
 		aria-controls="fc-runall-status">
 		<?php echo \Joomla\CMS\Language\Text::sprintf('FLEXI_RUN_ALL_PENDING_TASKS', $_fc_pending_count); ?>
