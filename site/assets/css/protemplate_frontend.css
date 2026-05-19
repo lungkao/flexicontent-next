@@ -1,0 +1,300 @@
+/**
+ * FLEXIcontent Pro Templates — Frontend Stylesheet
+ *
+ * Styles the teaser-feed output of admin/helpers/protemplate/Renderer.php
+ * in category context. Loaded by site/views/category/view.html.php only
+ * when a Pro Layout actually renders (no orphan payload on legacy views).
+ *
+ * Accessibility (WCAG 2.2 AA):
+ *   - Focus-visible ring tokens meet 3:1 against both card + page bg
+ *   - prefers-reduced-motion: disables hover transform AND transitions
+ *   - Card link via ::after overlay (one link per card; AT names by h2)
+ *   - DOM order == visual order at every breakpoint (no order/grid-row
+ *     overrides) — preserves WCAG 1.3.2 / 2.4.3
+ *   - line-clamp on .fcpt-introtext keeps full text in DOM for AT
+ *
+ * Tokens (scoped to .fc-cat-pro-list / .fc-mcats-pro-list — no global pollution):
+ *   --fc-focus-ring        : focus outline color (3:1+)
+ *   --fc-card-bg           : card background
+ *   --fc-card-border       : card border
+ *   --fc-text              : default text color
+ *   --fc-text-muted        : muted (date/meta) — still 4.5:1 against bg
+ *   --fc-image-placeholder : aspect-ratio box bg while image loads
+ */
+
+.fc-cat-pro-list,
+.fc-mcats-pro-list {
+	--fc-focus-ring:        #005fcc;
+	--fc-card-bg:           #ffffff;
+	--fc-card-border:       #e2e8f0;
+	--fc-text:              #1f2937;
+	--fc-text-muted:        #475569;
+	--fc-image-placeholder: #eef2f7;
+
+	list-style: none;
+	margin: 1.25rem 0;
+	padding: 0;
+
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 1.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+	.fc-cat-pro-list,
+	.fc-mcats-pro-list {
+		--fc-focus-ring:        #7cb7ff;
+		--fc-card-bg:           #1a1f2c;
+		--fc-card-border:       #2c3344;
+		--fc-text:              #e5e7eb;
+		--fc-text-muted:        #b1b9c4;
+		--fc-image-placeholder: #232a3a;
+	}
+}
+
+.fc-cat-pro-li,
+.fc-mcats-pro-li {
+	position: relative;
+	background: var(--fc-card-bg);
+	border: 1px solid var(--fc-card-border);
+	border-radius: 8px;
+	padding: 1rem;
+	overflow: hidden;
+	transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+	color: var(--fc-text);
+}
+
+.fc-cat-pro-li:hover,
+.fc-mcats-pro-li:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.18);
+	border-color: color-mix(in srgb, var(--fc-focus-ring) 35%, var(--fc-card-border));
+}
+
+.fc-cat-pro-li > article,
+.fc-mcats-pro-li > article,
+.fc-cat-pro-li .fcpt-item-fragment,
+.fc-mcats-pro-li .fcpt-item-fragment {
+	display: flex;
+	flex-direction: column;
+	gap: 0.625rem;
+	height: 100%;
+}
+
+/* Layout primitives emitted by Renderer (section/row/col wrappers).
+ * Flatten them inside the teaser card so the grid is the <ul>, not
+ * the Renderer's container/row/col stack. */
+.fc-cat-pro-list .fcpt-layout,
+.fc-mcats-pro-list .fcpt-layout,
+.fc-cat-pro-list .fcpt-section,
+.fc-mcats-pro-list .fcpt-section,
+.fc-cat-pro-list .fcpt-section > .container,
+.fc-mcats-pro-list .fcpt-section > .container {
+	display: contents;
+}
+
+.fc-cat-pro-list .fcpt-row,
+.fc-mcats-pro-list .fcpt-row {
+	display: flex;
+	flex-direction: column;
+	gap: 0.625rem;
+}
+
+.fc-cat-pro-list .fcpt-col,
+.fc-mcats-pro-list .fcpt-col {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+/* Image (figure + img) */
+.fc-cat-pro-list .fcpt-image-intro,
+.fc-cat-pro-list .fcpt-image-full,
+.fc-mcats-pro-list .fcpt-image-intro,
+.fc-mcats-pro-list .fcpt-image-full {
+	margin: -1rem -1rem 0.5rem;
+	background: var(--fc-image-placeholder);
+	overflow: hidden;
+}
+
+.fc-cat-pro-list .fcpt-image-intro img,
+.fc-cat-pro-list .fcpt-image-full img,
+.fc-mcats-pro-list .fcpt-image-intro img,
+.fc-mcats-pro-list .fcpt-image-full img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+}
+
+.fc-cat-pro-list .fcpt-image-caption,
+.fc-mcats-pro-list .fcpt-image-caption {
+	padding: 0.4rem 0.75rem;
+	font-size: 0.85rem;
+	color: var(--fc-text-muted);
+	background: var(--fc-image-placeholder);
+}
+
+/* Title (h2 in category context) */
+.fc-cat-pro-list .fcpt-title,
+.fc-mcats-pro-list .fcpt-title {
+	margin: 0;
+	font-size: 1.15rem;
+	line-height: 1.35;
+	font-weight: 600;
+	color: var(--fc-text);
+}
+
+.fc-cat-pro-list .fcpt-title a,
+.fc-mcats-pro-list .fcpt-title a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.fc-cat-pro-list .fcpt-title a:hover,
+.fc-mcats-pro-list .fcpt-title a:hover {
+	text-decoration: underline;
+}
+
+/* Card-wide click area — the <a> overlay extends to the whole <li>.
+ * AT still sees one link per card named by the title text. */
+.fc-cat-pro-list .fcpt-title a::after,
+.fc-mcats-pro-list .fcpt-title a::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+}
+
+.fc-cat-pro-list .fcpt-title a:focus-visible,
+.fc-mcats-pro-list .fcpt-title a:focus-visible {
+	outline: 3px solid var(--fc-focus-ring);
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/* Date / meta */
+.fc-cat-pro-list .fcpt-created,
+.fc-cat-pro-list .fcpt-modified,
+.fc-cat-pro-list .fcpt-publish-up,
+.fc-mcats-pro-list .fcpt-created,
+.fc-mcats-pro-list .fcpt-modified,
+.fc-mcats-pro-list .fcpt-publish-up {
+	display: inline-block;
+	font-size: 0.8rem;
+	color: var(--fc-text-muted);
+	margin: 0;
+}
+
+.fc-cat-pro-list .fcpt-author,
+.fc-mcats-pro-list .fcpt-author {
+	font-size: 0.85rem;
+	color: var(--fc-text-muted);
+	margin: 0;
+}
+
+.fc-cat-pro-list .fcpt-author .fcpt-label,
+.fc-mcats-pro-list .fcpt-author .fcpt-label {
+	font-weight: 600;
+}
+
+/* Introtext / fulltext (line-clamp; full text remains in DOM) */
+.fc-cat-pro-list .fcpt-introtext,
+.fc-cat-pro-list .fcpt-fulltext,
+.fc-mcats-pro-list .fcpt-introtext,
+.fc-mcats-pro-list .fcpt-fulltext {
+	color: var(--fc-text);
+	font-size: 0.95rem;
+	line-height: 1.6;
+	margin: 0;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.fc-cat-pro-list .fcpt-introtext p:first-child,
+.fc-mcats-pro-list .fcpt-introtext p:first-child {
+	margin-top: 0;
+}
+
+.fc-cat-pro-list .fcpt-introtext p:last-child,
+.fc-mcats-pro-list .fcpt-introtext p:last-child {
+	margin-bottom: 0;
+}
+
+/* Category / tags pills */
+.fc-cat-pro-list .fcpt-category,
+.fc-mcats-pro-list .fcpt-category {
+	display: inline-block;
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--fc-text);
+	background: var(--fc-image-placeholder);
+	padding: 0.15rem 0.6rem;
+	border-radius: 999px;
+	text-decoration: none;
+}
+
+.fc-cat-pro-list .fcpt-tags,
+.fc-mcats-pro-list .fcpt-tags {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+}
+
+.fc-cat-pro-list .fcpt-tags li,
+.fc-mcats-pro-list .fcpt-tags li {
+	font-size: 0.75rem;
+	background: var(--fc-image-placeholder);
+	padding: 0.15rem 0.55rem;
+	border-radius: 999px;
+}
+
+/* Fallback teaser (when no Pro Layout matched for an mcats item) */
+.fc-cat-pro-fallback,
+.fc-mcats-pro-fallback {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.fc-cat-pro-fallback .fc-cat-pro-title,
+.fc-cat-pro-fallback .fc-cat-pro-intro,
+.fc-mcats-pro-fallback .fc-mcats-pro-title,
+.fc-mcats-pro-fallback .fc-mcats-pro-intro {
+	margin: 0;
+}
+
+/* Empty-category card variant */
+.fc-cat-pro-empty {
+	max-width: 640px;
+	margin: 1.25rem auto;
+	padding: 1.25rem;
+	background: var(--fc-card-bg, #ffffff);
+	border: 1px dashed var(--fc-card-border, #e2e8f0);
+	border-radius: 8px;
+	text-align: center;
+}
+
+.fc-cat-pro-empty-msg {
+	margin: 0.75rem 0 0;
+	color: var(--fc-text-muted, #475569);
+	font-style: italic;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	.fc-cat-pro-li,
+	.fc-mcats-pro-li {
+		transition: none;
+	}
+	.fc-cat-pro-li:hover,
+	.fc-mcats-pro-li:hover {
+		transform: none;
+	}
+}

@@ -256,8 +256,16 @@ class FlexicontentProTemplateRenderer
 
 	protected function renderImage(string $variant, array $el): string
 	{
-		$images = (array) ($this->item->images ?? []);
+		$images = $this->normalizeImages($this->item->images ?? null);
 		$src    = (string) ($images[$variant] ?? '');
+
+		// Fallback: items relying on the FlexicontentFields 'image'
+		// custom field don't populate com_content's $item->images JSON.
+		// Try extracting the first <img src> from introtext / fulltext
+		// so the teaser still shows a thumbnail. Empty content → no image.
+		if ($src === '') {
+			$src = $this->extractImageFromContent();
+		}
 		if ($src === '') {
 			return '';
 		}
@@ -628,5 +636,66 @@ class FlexicontentProTemplateRenderer
 	protected function escAttr($v): string
 	{
 		return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
+	}
+
+	/**
+	 * Normalize $item->images into an associative array.
+	 *
+	 * com_content's native images column ships as a JSON string with
+	 * keys like image_intro / image_intro_alt / image_fulltext / etc.
+	 * Callers occasionally hand it to us pre-decoded as stdClass (e.g.
+	 * the image field plugin's onAllFieldsPostDataValidated) or already
+	 * cast to an array. Accept all three shapes; return [] for anything
+	 * else (null, non-decodable string, scalar).
+	 */
+	protected function normalizeImages($raw): array
+	{
+		if (is_array($raw)) {
+			return $raw;
+		}
+		if (is_object($raw)) {
+			return (array) $raw;
+		}
+		if (is_string($raw) && $raw !== '') {
+			$decoded = json_decode($raw, true);
+			if (is_array($decoded)) {
+				return $decoded;
+			}
+		}
+		return [];
+	}
+
+	/**
+	 * Fallback image source — extract the first <img src> from item
+	 * introtext/fulltext. Used when $item->images is empty (typical for
+	 * items that store their hero image via a FlexicontentFields custom
+	 * 'image' field rather than com_content's native images JSON).
+	 *
+	 * Returns the raw src URL (resolved by the page; we don't rewrite it)
+	 * or '' if no <img> is present. Skips data: URIs to avoid embedding
+	 * tracking pixels or oversized inline payloads in teaser cards.
+	 */
+	protected function extractImageFromContent(): string
+	{
+		$haystacks = [
+			(string) ($this->item->introtext ?? ''),
+			(string) ($this->item->fulltext  ?? ''),
+		];
+		foreach ($haystacks as $html) {
+			if ($html === '' || stripos($html, '<img') === false) {
+				continue;
+			}
+			// Scan ALL <img> in the content; skip data: URIs (tracking
+			// pixels / inline payloads) and return the first real src.
+			if (preg_match_all('#<img[^>]*\bsrc\s*=\s*(["\'])([^"\']+)\1#i', $html, $matches)) {
+				foreach ($matches[2] as $src) {
+					$src = trim($src);
+					if ($src !== '' && stripos($src, 'data:') !== 0) {
+						return $src;
+					}
+				}
+			}
+		}
+		return '';
 	}
 }

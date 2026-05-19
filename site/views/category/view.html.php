@@ -1203,6 +1203,15 @@ class FlexicontentViewCategory extends \Joomla\CMS\MVC\View\HtmlView
 		if ($_proLayout && !empty($_proLayout->layout_decoded))
 		{
 			try {
+				// Pro Layout frontend stylesheet — registered ONLY when a
+				// Pro Layout actually renders. Legacy template views never
+				// ship this payload.
+				$document->getWebAssetManager()->registerAndUseStyle(
+					'fc-protemplate-frontend',
+					\Joomla\CMS\Uri\Uri::root() . 'components/com_flexicontent/assets/css/protemplate_frontend.css',
+					array('version' => FLEXI_VHASH)
+				);
+
 				// Category default layout now renders the matched category-
 				// scope Pro Layout ONCE PER ITEM (teaser feed), not once per
 				// category. The category preset shape (image_intro + title +
@@ -1278,6 +1287,12 @@ class FlexicontentViewCategory extends \Joomla\CMS\MVC\View\HtmlView
 			// already wraps non-item context in <article>, so the document
 			// outline becomes: ul > li > article > h2 — a valid teaser feed.
 			try {
+				// Same Pro Layout frontend stylesheet as the default branch.
+				$document->getWebAssetManager()->registerAndUseStyle(
+					'fc-protemplate-frontend',
+					\Joomla\CMS\Uri\Uri::root() . 'components/com_flexicontent/assets/css/protemplate_frontend.css',
+					array('version' => FLEXI_VHASH)
+				);
 				echo '<ul class="fc-mcats-pro-list">';
 				$_proRenderer = new \FlexicontentProTemplateRenderer();
 				foreach ($_proMcatsItems as $_pmi) {
