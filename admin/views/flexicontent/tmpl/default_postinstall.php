@@ -331,9 +331,95 @@ jQuery(document).ready(function() {
 	});
 <?php endif; ?>
 
+
+	/**
+	 * Run-all-pending master button — chains every visible #*-log AJAX task
+	 * sequentially so the operator doesn't have to click each pending
+	 * "Update" link by hand.
+	 *
+	 * A11y: the button reports status via the live region #fc-runall-status
+	 * (aria-live=polite, aria-atomic=true). The visible text is also kept
+	 * in sync so sighted users see the same progress.
+	 */
+	jQuery('#fc-runall-pending').on('click', function (e) {
+		e.preventDefault();
+
+		var $btn    = jQuery(this);
+		var $status = jQuery('#fc-runall-status');
+		var $pending = jQuery('.postinstall-tbl .install-task .fc_button.fc_simple');
+
+		if ($pending.length === 0) {
+			$status.text('<?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_NO_PENDING_TASKS', true ); ?>');
+			return;
+		}
+
+		$btn.attr('aria-disabled', 'true').addClass('disabled');
+
+		var total = $pending.length;
+		var done  = 0;
+
+		function next(i) {
+			if (i >= total) {
+				$status.text('<?php echo \Joomla\CMS\Language\Text::_( 'FLEXI_ALL_PENDING_TASKS_DONE', true ); ?> (' + done + '/' + total + ')');
+				$btn.attr('aria-disabled', 'false').removeClass('disabled');
+				// Re-fetch the panel after a short delay so the OK/notOK
+				// icons rebuild against fresh server state.
+				window.setTimeout(function () { window.location.reload(); }, 1200);
+				return;
+			}
+
+			var $link = jQuery($pending[i]);
+			$status.text('(' + (i + 1) + '/' + total + ') ' + $link.text());
+
+			// Each link already has a delegated handler set above that
+			// fires its AJAX URL and writes the response into the matching
+			// #*-log container. We trigger that handler then wait for the
+			// AJAX queue to drain before advancing.
+			$link.trigger('click');
+
+			jQuery(document).ajaxStop(function chainNext() {
+				jQuery(document).off('ajaxStop', chainNext);
+				done++;
+				next(i + 1);
+			});
+		}
+
+		next(0);
+	});
+
 });
 </script>
 
+
+<?php
+	// Compute pending count so we can hide the master button when nothing's left.
+	$_fc_pending_count = 0;
+	foreach (array(
+		'existfields', 'existcpfields', 'existmenuitems', 'existtype',
+		'allplgpublish', 'existcats', 'langsynced', 'existdbindexes',
+		'existversions', 'existversionsdata', 'existauthors', 'cachethumb',
+		'itemcountingdok', 'deprecatedfiles', 'nooldfieldsdata', 'missingversion',
+		'initialpermission',
+	) as $_fc_flag) {
+		if (empty($this->{$_fc_flag})) $_fc_pending_count++;
+	}
+?>
+
+<?php if ($_fc_pending_count > 0): ?>
+<div class="fc-postinstall-actions" style="margin:10px 0 14px 10px;">
+	<a id="fc-runall-pending" class="fc_button fc_action" href="javascript:;"
+		role="button"
+		aria-controls="fc-runall-status">
+		<?php echo \Joomla\CMS\Language\Text::sprintf('FLEXI_RUN_ALL_PENDING_TASKS', $_fc_pending_count); ?>
+	</a>
+	<span id="fc-runall-status"
+		class="fc-mssg-inline fc-mssg fc-info"
+		role="status"
+		aria-live="polite"
+		aria-atomic="true"
+		style="margin-left:.75rem;"></span>
+</div>
+<?php endif; ?>
 
 <table class="adminlist table fcmanlist postinstall-tbl" style="margin: 10px 0 10px 10px; border: 0 none;">
 
