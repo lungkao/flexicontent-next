@@ -265,17 +265,22 @@ if ($format === 'html')
 	// FLEXIcontent Modern UI
 	if (FLEXI_J40GE) $document->getWebAssetManager()->registerAndUseStyle('fc-j4x-modern', \Joomla\CMS\Uri\Uri::root().(JDEBUG ? 'administrator/components/com_flexicontent/assets/css/j4x_modern.css' : 'administrator/components/com_flexicontent/assets/css/j4x_modern.min.css'), array('version' => FLEXI_VHASH));
 
-	// Add flexi-lib JS — must load AFTER jQuery UI
-	// Use WebAssetManager so jQuery UI CDN loads first via proper ordering
+	// Add flexi-lib JS — must load AFTER jQuery UI.
+	// Use WebAssetManager so jQuery UI CDN loads first via proper ordering.
+	// jQuery UI must also load AFTER Joomla's jquery-noconflict so the global
+	// `jQuery`/`$` is defined when the CDN bundle evaluates — otherwise WAM
+	// can emit jquery-ui before Joomla core jQuery, throwing
+	// "jQuery is not defined" and breaking Atum's MetisMenu sidebar +
+	// hotkeys keymap on FLEXIcontent admin views.
 	$wa = \Joomla\CMS\Factory::getDocument()->getWebAssetManager();
-	// Register jQuery UI first, then flexi-lib with explicit dependency
 	if (FLEXI_J40GE) {
 		// jQuery UI CDN — registerAndUseScript ensures it appears in <head>
 		$wa->registerAndUseScript(
 			'jquery-ui',
 			'https://code.jquery.com/ui/1.13.2/jquery-ui.min.js',
 			array('version' => '1.13.2'),
-			array()
+			array(),
+			array('jquery-noconflict')
 		);
 		// jQuery UI CSS
 		$wa->registerAndUseStyle(

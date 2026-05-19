@@ -1304,12 +1304,19 @@ class flexicontent_html
 		{
 			if (FLEXI_J40GE)
 			{
-				// J5/J6: Load jQuery UI 1.13.2 full bundle from CDN
-				// Must load BEFORE flexi-lib.js which calls .dialog()/.sortable()
+				// J5/J6: Load jQuery UI 1.13.2 full bundle from CDN.
+				// Must load BEFORE flexi-lib.js which calls .dialog()/.sortable(),
+				// and AFTER Joomla's jquery-noconflict so the global `jQuery`/`$`
+				// exists when the CDN bundle evaluates. Without this dependency
+				// WAM may inject jquery-ui before Joomla core jQuery, throwing
+				// "jQuery is not defined" and breaking downstream Atum scripts
+				// (MetisMenu sidebar, hotkeys keymap, etc.).
 				$document->getWebAssetManager()->registerAndUseScript(
 					'jquery-ui',
 					'https://code.jquery.com/ui/1.13.2/jquery-ui.min.js',
-					array('version' => '1.13.2')
+					array('version' => '1.13.2'),
+					array(),
+					array('jquery-noconflict')
 				);
 			}
 			else
