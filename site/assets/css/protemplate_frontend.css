@@ -1,38 +1,111 @@
 /**
- * FLEXIcontent Pro Templates — Frontend Stylesheet
+ * FLEXIcontent Pro Templates — Frontend Stylesheet (v2 — distinct treatments)
  *
  * Styles the teaser-feed output of admin/helpers/protemplate/Renderer.php
  * in category context. Loaded by site/views/category/view.html.php only
  * when a Pro Layout actually renders (no orphan payload on legacy views).
  *
- * Accessibility (WCAG 2.2 AA):
- *   - Focus-visible ring tokens meet 3:1 against both card + page bg
- *   - prefers-reduced-motion: disables hover transform AND transitions
- *   - Card link via ::after overlay (one link per card; AT names by h2)
- *   - DOM order == visual order at every breakpoint (no order/grid-row
- *     overrides) — preserves WCAG 1.3.2 / 2.4.3
- *   - line-clamp on .fcpt-introtext keeps full text in DOM for AT
+ * ── Four distinct visual treatments, driven by section/row `appearance`
+ *    markers emitted by the Renderer (no markup change needed):
  *
- * Tokens (scoped to .fc-cat-pro-list / .fc-mcats-pro-list — no global pollution):
- *   --fc-focus-ring        : focus outline color (3:1+)
- *   --fc-card-bg           : card background
- *   --fc-card-border       : card border
- *   --fc-text              : default text color
- *   --fc-text-muted        : muted (date/meta) — still 4.5:1 against bg
- *   --fc-image-placeholder : aspect-ratio box bg while image loads
+ *    1. Soft Bento Card     ← section.fcpt-appearance-plain  + row.fcpt-appearance-default
+ *    2. Magazine Hero       ← section.fcpt-appearance-feature + row.fcpt-appearance-media
+ *    3. Asymmetric Bento    ← section.fcpt-appearance-bento   + row.fcpt-appearance-bento
+ *    4. Notion-style List   ← row.fcpt-appearance-compact
+ *
+ *    The `<ul>` chooses its grid layout by inspecting one of those markers
+ *    inside any of its `<li>` children via :has() (Baseline 2023+). Each
+ *    treatment is fully scoped so adding a fifth preset later only needs
+ *    a new appearance keyword + a new ruleset.
+ *
+ * ── Accessibility (WCAG 2.2 AA, cleared by accessibility-lead 2026-05-19):
+ *    - :focus-visible 3:1+ ring on the title link only — no double-ring
+ *    - prefers-reduced-motion disables transform, transition, AND the
+ *      bento intro reveal animation
+ *    - line-clamp visually truncates while full text remains in DOM
+ *    - bento title overlay sits in a guaranteed-dark scrim (0.78 alpha
+ *      from 55%→100% of the gradient) — passes 4.5:1 over worst-case
+ *      white image
+ *    - bento intro reveal honors 1.4.13: persistent, hoverable, and
+ *      dismissible via Escape (see protemplate_frontend.js)
+ *    - DOM order == visual order at every breakpoint (no order/grid-row
+ *      shuffles except :first-child natural placement)
+ *    - text-on-image always has solid scrim backing, never relies on
+ *      text-shadow alone
+ *    - eyebrow uppercase via text-transform (AT reads mixed-case source)
+ *
+ * ── Token surface (scoped to .fc-cat-pro-list / .fc-mcats-pro-list):
+ *      --fc-focus-ring        3:1+ outline color (light + dark variants)
+ *      --fc-accent            eyebrow / highlight (light: #c2410c, dark: #fb923c)
+ *      --fc-card-bg           card surface
+ *      --fc-card-bg-elev      hover-elevated card surface
+ *      --fc-card-border       1px subtle border
+ *      --fc-card-shadow       resting drop shadow
+ *      --fc-card-shadow-hov   hover drop shadow (stronger)
+ *      --fc-text              4.5:1 text on card-bg
+ *      --fc-text-muted        4.5:1 muted text on card-bg
+ *      --fc-text-inverse      text on dark overlay scrim
+ *      --fc-image-placeholder figure background while image loads
+ *      --fc-scrim-grad        bento gradient scrim (solid 0.78 from 55%)
+ *      --fc-radius-card       card corner radius
+ *      --fc-radius-thumb      compact-list thumb radius
+ *
+ *    Override any of these on a parent selector to retheme without
+ *    touching this file (e.g. `[data-fcpt-theme="editorial"] { --fc-accent: #b45309; }`).
+ *
+ * ── Defensive specificity:
+ *    Defaults wrap in :where() so YOOtheme / Joomla template overrides
+ *    win without `!important`. Only the :has()-driven layout switches
+ *    and a11y-critical rules keep their natural specificity.
+ *
+ * @package FLEXIcontent
+ * @since   6.1.0-beta.8
  */
 
-.fc-cat-pro-list,
-.fc-mcats-pro-list {
-	--fc-focus-ring:        #005fcc;
-	--fc-card-bg:           #ffffff;
-	--fc-card-border:       #e2e8f0;
-	--fc-text:              #1f2937;
-	--fc-text-muted:        #475569;
-	--fc-image-placeholder: #eef2f7;
+/* ── Container tokens ────────────────────────────────────────────── */
 
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) {
+	--fc-focus-ring:         #005fcc;
+	--fc-accent:             #c2410c;
+	--fc-card-bg:            #ffffff;
+	--fc-card-bg-elev:       #fbfbfd;
+	--fc-card-border:        #e2e8f0;
+	--fc-card-shadow:        0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px -6px rgba(15, 23, 42, 0.08);
+	--fc-card-shadow-hov:    0 4px 8px -2px rgba(15, 23, 42, 0.10), 0 12px 28px -8px rgba(15, 23, 42, 0.18);
+	--fc-text:               #0f172a;
+	--fc-text-muted:         #475569;
+	--fc-text-inverse:       #ffffff;
+	--fc-image-placeholder:  #eef2f7;
+	--fc-scrim-grad:         linear-gradient(180deg, transparent 0%, transparent 45%, rgba(0, 0, 0, 0.78) 55%, rgba(0, 0, 0, 0.92) 100%);
+	--fc-radius-card:        16px;
+	--fc-radius-thumb:        8px;
+	--fc-trans:              180ms cubic-bezier(0.4, 0, 0.2, 1);
+
+	color: var(--fc-text);
+	font-feature-settings: "tnum" 1, "kern" 1;
+	accent-color: var(--fc-focus-ring);
+}
+
+@media (prefers-color-scheme: dark) {
+	:where(.fc-cat-pro-list, .fc-mcats-pro-list) {
+		--fc-focus-ring:         #7cb7ff;
+		--fc-accent:             #fb923c;
+		--fc-card-bg:            #1a1f2c;
+		--fc-card-bg-elev:       #232a3a;
+		--fc-card-border:        #2c3344;
+		--fc-card-shadow:        0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px -6px rgba(0, 0, 0, 0.6);
+		--fc-card-shadow-hov:    0 4px 8px -2px rgba(0, 0, 0, 0.5), 0 12px 28px -8px rgba(0, 0, 0, 0.7);
+		--fc-text:               #e5e7eb;
+		--fc-text-muted:         #b1b9c4;
+		--fc-image-placeholder:  #232a3a;
+	}
+}
+
+/* ── Container — default grid (Soft Bento Card / Magazine Hero) ──── */
+
+:where(.fc-cat-pro-list, .fc-mcats-pro-list) {
 	list-style: none;
-	margin: 1.25rem 0;
+	margin: 1.5rem 0;
 	padding: 0;
 
 	display: grid;
@@ -40,170 +113,207 @@
 	gap: 1.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-	.fc-cat-pro-list,
-	.fc-mcats-pro-list {
-		--fc-focus-ring:        #7cb7ff;
-		--fc-card-bg:           #1a1f2c;
-		--fc-card-border:       #2c3344;
-		--fc-text:              #e5e7eb;
-		--fc-text-muted:        #b1b9c4;
-		--fc-image-placeholder: #232a3a;
+/* Magazine Hero: cards are wider, fewer per row */
+.fc-cat-pro-list:has(.fcpt-appearance-feature),
+.fc-mcats-pro-list:has(.fcpt-appearance-feature) {
+	grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
+	gap: 2rem;
+}
+
+/* Asymmetric Bento: tighter tiles, fixed row height for span calc */
+.fc-cat-pro-list:has(.fcpt-appearance-bento),
+.fc-mcats-pro-list:has(.fcpt-appearance-bento) {
+	grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+	grid-auto-rows: 280px;
+	gap: 1rem;
+}
+
+@media (min-width: 720px) {
+	/* First item gets the hero tile (2x2). Falls back to 1x1 at narrow
+	   viewports where the auto-fit grid only has one column. */
+	.fc-cat-pro-list:has(.fcpt-appearance-bento) > .fc-cat-pro-li:first-child,
+	.fc-mcats-pro-list:has(.fcpt-appearance-bento) > .fc-mcats-pro-li:first-child {
+		grid-column: span 2;
+		grid-row: span 2;
 	}
 }
 
-.fc-cat-pro-li,
-.fc-mcats-pro-li {
+/* Notion-style List: full-width rows, divider-driven */
+.fc-cat-pro-list:has(.fcpt-row.fcpt-appearance-compact),
+.fc-mcats-pro-list:has(.fcpt-row.fcpt-appearance-compact) {
+	display: block;
+	border-top: 1px solid var(--fc-card-border);
+	margin: 1.25rem 0;
+	gap: 0;
+}
+
+/* ── Cards — shared baseline ─────────────────────────────────────── */
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) {
 	position: relative;
 	background: var(--fc-card-bg);
 	border: 1px solid var(--fc-card-border);
-	border-radius: 8px;
-	padding: 1rem;
+	border-radius: var(--fc-radius-card);
 	overflow: hidden;
-	transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 	color: var(--fc-text);
+	box-shadow: var(--fc-card-shadow);
+	transition:
+		transform var(--fc-trans),
+		box-shadow var(--fc-trans),
+		background-color var(--fc-trans),
+		border-color var(--fc-trans);
 }
 
-.fc-cat-pro-li:hover,
-.fc-mcats-pro-li:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.18);
-	border-color: color-mix(in srgb, var(--fc-focus-ring) 35%, var(--fc-card-border));
+:where(.fc-cat-pro-li, .fc-mcats-pro-li):hover {
+	transform: translateY(-3px);
+	box-shadow: var(--fc-card-shadow-hov);
+	background-color: var(--fc-card-bg-elev);
 }
 
-.fc-cat-pro-li > article,
-.fc-mcats-pro-li > article,
-.fc-cat-pro-li .fcpt-item-fragment,
-.fc-mcats-pro-li .fcpt-item-fragment {
-	display: flex;
-	flex-direction: column;
-	gap: 0.625rem;
-	height: 100%;
+/* Active press feedback */
+:where(.fc-cat-pro-li, .fc-mcats-pro-li):active {
+	transform: translateY(-1px);
 }
 
-/* Layout primitives emitted by Renderer (section/row/col wrappers).
- * Flatten them inside the teaser card so the grid is the <ul>, not
- * the Renderer's container/row/col stack. */
-.fc-cat-pro-list .fcpt-layout,
-.fc-mcats-pro-list .fcpt-layout,
-.fc-cat-pro-list .fcpt-section,
-.fc-mcats-pro-list .fcpt-section,
-.fc-cat-pro-list .fcpt-section > .container,
-.fc-mcats-pro-list .fcpt-section > .container {
+/* Focus-within: subtle card-level tint (NOT a second ring — a11y-lead
+   feedback). The actual focus indicator is the link outline. */
+:where(.fc-cat-pro-li, .fc-mcats-pro-li):focus-within {
+	background-color: var(--fc-card-bg-elev);
+}
+
+/* Renderer wrappers flatten into the card */
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-layout,
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-section,
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-section > .container {
 	display: contents;
 }
 
-.fc-cat-pro-list .fcpt-row,
-.fc-mcats-pro-list .fcpt-row {
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-item-fragment {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-row {
 	display: flex;
 	flex-direction: column;
 	gap: 0.625rem;
 }
 
-.fc-cat-pro-list .fcpt-col,
-.fc-mcats-pro-list .fcpt-col {
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-col {
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
+	flex: 1 1 auto;
+	min-width: 0;
 }
 
-/* Image (figure + img) */
-.fc-cat-pro-list .fcpt-image-intro,
-.fc-cat-pro-list .fcpt-image-full,
-.fc-mcats-pro-list .fcpt-image-intro,
-.fc-mcats-pro-list .fcpt-image-full {
-	margin: -1rem -1rem 0.5rem;
+/* ── Image (figure + img) — shared ───────────────────────────────── */
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-image-intro,
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-image-full {
+	margin: 0;
 	background: var(--fc-image-placeholder);
 	overflow: hidden;
+	position: relative;
 }
 
-.fc-cat-pro-list .fcpt-image-intro img,
-.fc-cat-pro-list .fcpt-image-full img,
-.fc-mcats-pro-list .fcpt-image-intro img,
-.fc-mcats-pro-list .fcpt-image-full img {
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-image-intro img,
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-image-full img {
 	display: block;
 	width: 100%;
-	height: auto;
-	aspect-ratio: 16 / 9;
+	height: 100%;
+	aspect-ratio: 4 / 3;
 	object-fit: cover;
+	transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.fc-cat-pro-list .fcpt-image-caption,
-.fc-mcats-pro-list .fcpt-image-caption {
+:where(.fc-cat-pro-li, .fc-mcats-pro-li):hover .fcpt-image-intro img,
+:where(.fc-cat-pro-li, .fc-mcats-pro-li):hover .fcpt-image-full img {
+	transform: scale(1.05);
+}
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-image-caption {
 	padding: 0.4rem 0.75rem;
 	font-size: 0.85rem;
 	color: var(--fc-text-muted);
 	background: var(--fc-image-placeholder);
 }
 
-/* Title (h2 in category context) */
-.fc-cat-pro-list .fcpt-title,
-.fc-mcats-pro-list .fcpt-title {
+/* ── Title (h2 in category context) — shared ─────────────────────── */
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-title {
 	margin: 0;
-	font-size: 1.15rem;
-	line-height: 1.35;
-	font-weight: 600;
+	font-size: 1.2rem;
+	line-height: 1.3;
+	font-weight: 700;
+	letter-spacing: -0.015em;
+	text-wrap: balance;
 	color: var(--fc-text);
 }
 
-.fc-cat-pro-list .fcpt-title a,
-.fc-mcats-pro-list .fcpt-title a {
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-title a {
 	color: inherit;
 	text-decoration: none;
 }
 
-.fc-cat-pro-list .fcpt-title a:hover,
-.fc-mcats-pro-list .fcpt-title a:hover {
-	text-decoration: underline;
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-title a:hover {
+	color: var(--fc-accent);
 }
 
-/* Card-wide click area — the <a> overlay extends to the whole <li>.
- * AT still sees one link per card named by the title text. */
-.fc-cat-pro-list .fcpt-title a::after,
-.fc-mcats-pro-list .fcpt-title a::after {
+/* Card-wide click area — single accessible link per card, named by h2.
+   No nested interactives; AT contract stays clean. */
+.fc-cat-pro-li .fcpt-title a::after,
+.fc-mcats-pro-li .fcpt-title a::after {
 	content: "";
 	position: absolute;
 	inset: 0;
 	border-radius: inherit;
+	z-index: 1;
 }
 
-.fc-cat-pro-list .fcpt-title a:focus-visible,
-.fc-mcats-pro-list .fcpt-title a:focus-visible {
+/* Lift interactive children above the overlay so they remain clickable. */
+.fc-cat-pro-li .fcpt-tags,
+.fc-mcats-pro-li .fcpt-tags,
+.fc-cat-pro-li a:not(.fcpt-title a),
+.fc-mcats-pro-li a:not(.fcpt-title a) {
+	position: relative;
+	z-index: 2;
+}
+
+.fc-cat-pro-li .fcpt-title a:focus-visible,
+.fc-mcats-pro-li .fcpt-title a:focus-visible {
 	outline: 3px solid var(--fc-focus-ring);
-	outline-offset: 2px;
-	border-radius: 2px;
+	outline-offset: 4px;
+	border-radius: 4px;
 }
 
-/* Date / meta */
-.fc-cat-pro-list .fcpt-created,
-.fc-cat-pro-list .fcpt-modified,
-.fc-cat-pro-list .fcpt-publish-up,
-.fc-mcats-pro-list .fcpt-created,
-.fc-mcats-pro-list .fcpt-modified,
-.fc-mcats-pro-list .fcpt-publish-up {
+/* ── Date / time — shared (tabular nums for steady width) ────────── */
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-created,
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-modified,
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-publish-up {
 	display: inline-block;
 	font-size: 0.8rem;
 	color: var(--fc-text-muted);
 	margin: 0;
+	font-variant-numeric: tabular-nums;
 }
 
-.fc-cat-pro-list .fcpt-author,
-.fc-mcats-pro-list .fcpt-author {
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-author {
 	font-size: 0.85rem;
 	color: var(--fc-text-muted);
 	margin: 0;
 }
 
-.fc-cat-pro-list .fcpt-author .fcpt-label,
-.fc-mcats-pro-list .fcpt-author .fcpt-label {
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-author .fcpt-label {
 	font-weight: 600;
 }
 
-/* Introtext / fulltext (line-clamp; full text remains in DOM) */
-.fc-cat-pro-list .fcpt-introtext,
-.fc-cat-pro-list .fcpt-fulltext,
-.fc-mcats-pro-list .fcpt-introtext,
-.fc-mcats-pro-list .fcpt-fulltext {
+/* ── Introtext — line-clamp (DOM keeps full text) ────────────────── */
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-introtext,
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-fulltext {
 	color: var(--fc-text);
 	font-size: 0.95rem;
 	line-height: 1.6;
@@ -214,53 +324,436 @@
 	overflow: hidden;
 }
 
-.fc-cat-pro-list .fcpt-introtext p:first-child,
-.fc-mcats-pro-list .fcpt-introtext p:first-child {
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-introtext > p:first-child,
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-fulltext > p:first-child {
 	margin-top: 0;
 }
 
-.fc-cat-pro-list .fcpt-introtext p:last-child,
-.fc-mcats-pro-list .fcpt-introtext p:last-child {
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-introtext > p:last-child,
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-fulltext > p:last-child {
 	margin-bottom: 0;
 }
 
-/* Category / tags pills */
-.fc-cat-pro-list .fcpt-category,
-.fc-mcats-pro-list .fcpt-category {
+/* ── Category / tags pills ──────────────────────────────────────── */
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-category {
 	display: inline-block;
 	font-size: 0.75rem;
 	font-weight: 600;
 	color: var(--fc-text);
 	background: var(--fc-image-placeholder);
-	padding: 0.15rem 0.6rem;
+	padding: 0.2rem 0.65rem;
 	border-radius: 999px;
 	text-decoration: none;
 }
 
-.fc-cat-pro-list .fcpt-tags,
-.fc-mcats-pro-list .fcpt-tags {
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-tags {
 	list-style: none;
-	margin: 0;
+	margin: 0.25rem 0 0;
 	padding: 0;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.4rem;
 }
 
-.fc-cat-pro-list .fcpt-tags li,
-.fc-mcats-pro-list .fcpt-tags li {
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-tags li {
 	font-size: 0.75rem;
 	background: var(--fc-image-placeholder);
-	padding: 0.15rem 0.55rem;
+	padding: 0.18rem 0.6rem;
 	border-radius: 999px;
 }
 
-/* Fallback teaser (when no Pro Layout matched for an mcats item) */
+/* =================================================================
+   TREATMENT 1 — Soft Bento Card
+   (section.fcpt-appearance-plain + row.fcpt-appearance-default)
+   The user's stated favourite, polished to modern feel:
+     - 4/3 hero image flush to card top
+     - generous internal padding
+     - subtle border-top accent on hover (color hint without disrupting layout)
+   ================================================================= */
+
+.fc-cat-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)),
+.fc-mcats-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)) {
+	padding: 0;
+}
+
+.fc-cat-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)) .fcpt-item-fragment,
+.fc-mcats-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)) .fcpt-item-fragment {
+	gap: 0;
+}
+
+.fc-cat-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)) .fcpt-col,
+.fc-mcats-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)) .fcpt-col {
+	padding: 1.25rem;
+	gap: 0.65rem;
+}
+
+.fc-cat-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)) .fcpt-image-intro,
+.fc-mcats-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)) .fcpt-image-intro {
+	margin: 0;
+	border-radius: 0;
+}
+
+/* Subtle accent stripe on hover — modern dashboard feel, no layout shift */
+.fc-cat-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact))::before,
+.fc-mcats-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact))::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: var(--fc-accent);
+	transform: scaleX(0);
+	transform-origin: left center;
+	transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+	z-index: 2;
+}
+
+.fc-cat-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)):hover::before,
+.fc-cat-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)):focus-within::before,
+.fc-mcats-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)):hover::before,
+.fc-mcats-pro-li:not(:has(.fcpt-appearance-feature)):not(:has(.fcpt-appearance-bento)):not(:has(.fcpt-appearance-compact)):focus-within::before {
+	transform: scaleX(1);
+}
+
+/* =================================================================
+   TREATMENT 2 — Magazine Hero
+   (section.fcpt-appearance-feature + row.fcpt-appearance-media)
+   Side-by-side: image left, content right. Eyebrow label above title.
+   ================================================================= */
+
+.fc-cat-pro-li:has(.fcpt-appearance-feature),
+.fc-mcats-pro-li:has(.fcpt-appearance-feature) {
+	padding: 0;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-feature) .fcpt-row.fcpt-appearance-media,
+.fc-mcats-pro-li:has(.fcpt-appearance-feature) .fcpt-row.fcpt-appearance-media {
+	flex-direction: column;
+	gap: 0;
+	height: 100%;
+}
+
+@media (min-width: 640px) {
+	.fc-cat-pro-li:has(.fcpt-appearance-feature) .fcpt-row.fcpt-appearance-media,
+	.fc-mcats-pro-li:has(.fcpt-appearance-feature) .fcpt-row.fcpt-appearance-media {
+		flex-direction: row;
+		align-items: stretch;
+	}
+
+	.fc-cat-pro-li:has(.fcpt-appearance-feature) .fcpt-col:first-child,
+	.fc-mcats-pro-li:has(.fcpt-appearance-feature) .fcpt-col:first-child {
+		flex: 0 0 58%;
+	}
+
+	.fc-cat-pro-li:has(.fcpt-appearance-feature) .fcpt-col:nth-child(2),
+	.fc-mcats-pro-li:has(.fcpt-appearance-feature) .fcpt-col:nth-child(2) {
+		flex: 1 1 42%;
+		padding: 1.75rem 1.5rem;
+		justify-content: center;
+	}
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-feature) .fcpt-col:nth-child(2),
+.fc-mcats-pro-li:has(.fcpt-appearance-feature) .fcpt-col:nth-child(2) {
+	padding: 1.5rem;
+	gap: 0.75rem;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-feature) .fcpt-image-intro img,
+.fc-mcats-pro-li:has(.fcpt-appearance-feature) .fcpt-image-intro img {
+	aspect-ratio: 4 / 3;
+	height: 100%;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-feature) .fcpt-image-intro,
+.fc-mcats-pro-li:has(.fcpt-appearance-feature) .fcpt-image-intro {
+	height: 100%;
+}
+
+/* "FEATURED" eyebrow — pseudo content. AT contract: the underlying
+   text is the date or category label below, not the eyebrow. */
+.fc-cat-pro-li:has(.fcpt-appearance-feature) .fcpt-title::before,
+.fc-mcats-pro-li:has(.fcpt-appearance-feature) .fcpt-title::before {
+	content: "Featured";
+	display: block;
+	font-size: 0.7rem;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--fc-accent);
+	margin-bottom: 0.4rem;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-feature) .fcpt-title,
+.fc-mcats-pro-li:has(.fcpt-appearance-feature) .fcpt-title {
+	font-size: 1.5rem;
+	line-height: 1.25;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-feature) .fcpt-introtext,
+.fc-mcats-pro-li:has(.fcpt-appearance-feature) .fcpt-introtext {
+	-webkit-line-clamp: 4;
+}
+
+/* =================================================================
+   TREATMENT 3 — Asymmetric Bento
+   (section.fcpt-appearance-bento + row.fcpt-appearance-bento)
+   Image fills the tile. Title overlays in a guaranteed-dark scrim.
+   Intro hidden by default — reveals on hover/focus, dismissible by Esc.
+   ================================================================= */
+
+.fc-cat-pro-li:has(.fcpt-appearance-bento),
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) {
+	padding: 0;
+	color: var(--fc-text-inverse);
+	min-height: 240px;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-item-fragment,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-item-fragment {
+	position: relative;
+	height: 100%;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-row,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-row {
+	display: contents;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-col,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-col {
+	position: absolute;
+	inset: 0;
+	padding: 0;
+}
+
+/* Image fills the entire tile */
+.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-image-intro,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-image-intro {
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	border-radius: 0;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-image-intro img,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-image-intro img {
+	aspect-ratio: auto;
+	width: 100%;
+	height: 100%;
+}
+
+/* Dark scrim ensures 4.5:1 contrast in the bottom 45% where text lives */
+.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-image-intro::after,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-image-intro::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: var(--fc-scrim-grad);
+	pointer-events: none;
+}
+
+/* Text column sits on top of the image */
+.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-col:nth-child(2),
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-col:nth-child(2) {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	padding: 1rem 1.25rem;
+	gap: 0.5rem;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-title,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-title {
+	color: var(--fc-text-inverse);
+	font-size: 1.15rem;
+	line-height: 1.3;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-title a,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-title a {
+	color: inherit;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-title a:hover,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-title a:hover {
+	color: var(--fc-text-inverse);
+	text-decoration: underline;
+}
+
+/* First (hero) tile gets a bigger title at wider viewports */
+@media (min-width: 720px) {
+	.fc-cat-pro-list:has(.fcpt-appearance-bento) > .fc-cat-pro-li:first-child .fcpt-title,
+	.fc-mcats-pro-list:has(.fcpt-appearance-bento) > .fc-mcats-pro-li:first-child .fcpt-title {
+		font-size: 1.75rem;
+	}
+}
+
+/* Date pill — top-right corner, glassy */
+.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-created,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-created {
+	position: absolute;
+	top: 0.75rem;
+	right: 0.75rem;
+	font-size: 0.7rem;
+	font-weight: 600;
+	color: var(--fc-text-inverse);
+	background: rgba(0, 0, 0, 0.55);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	padding: 0.25rem 0.65rem;
+	border-radius: 999px;
+	z-index: 2;
+}
+
+/* Intro starts collapsed; reveals on hover or focus-within.
+   Persistence + hoverable handled by max-height transition staying in
+   the same hover/focus target. Escape-key dismissal comes from JS — see
+   protemplate_frontend.js. */
+.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-introtext,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-introtext {
+	color: var(--fc-text-inverse);
+	-webkit-line-clamp: 2;
+	font-size: 0.85rem;
+	max-height: 0;
+	opacity: 0;
+	overflow: hidden;
+	transition: max-height 240ms ease-out, opacity 180ms ease-out;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-bento):hover .fcpt-introtext,
+.fc-cat-pro-li:has(.fcpt-appearance-bento):focus-within .fcpt-introtext,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento):hover .fcpt-introtext,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento):focus-within .fcpt-introtext {
+	max-height: 5rem;
+	opacity: 1;
+}
+
+/* JS sets `data-fc-dismissed="true"` on Escape — keep collapsed even
+   while hover/focus is still on the card. */
+.fc-cat-pro-li:has(.fcpt-appearance-bento)[data-fc-dismissed="true"] .fcpt-introtext,
+.fc-mcats-pro-li:has(.fcpt-appearance-bento)[data-fc-dismissed="true"] .fcpt-introtext {
+	max-height: 0 !important;
+	opacity: 0 !important;
+}
+
+/* =================================================================
+   TREATMENT 4 — Notion-style List
+   (row.fcpt-appearance-compact)
+   Flat horizontal rows, dense, divider-only. Thumb left, content right.
+   ================================================================= */
+
+.fc-cat-pro-li:has(.fcpt-appearance-compact),
+.fc-mcats-pro-li:has(.fcpt-appearance-compact) {
+	border-radius: 0;
+	border: none;
+	border-bottom: 1px solid var(--fc-card-border);
+	background: transparent;
+	box-shadow: none;
+	padding: 0;
+	overflow: visible;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-compact):hover,
+.fc-mcats-pro-li:has(.fcpt-appearance-compact):hover {
+	transform: none;
+	box-shadow: none;
+	background-color: var(--fc-card-bg-elev);
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-compact) .fcpt-row.fcpt-appearance-compact,
+.fc-mcats-pro-li:has(.fcpt-appearance-compact) .fcpt-row.fcpt-appearance-compact {
+	flex-direction: row;
+	align-items: center;
+	gap: 1rem;
+	padding: 0.875rem 1rem;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-compact) .fcpt-col:first-child,
+.fc-mcats-pro-li:has(.fcpt-appearance-compact) .fcpt-col:first-child {
+	flex: 0 0 auto;
+	width: 96px;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-compact) .fcpt-col:nth-child(2),
+.fc-mcats-pro-li:has(.fcpt-appearance-compact) .fcpt-col:nth-child(2) {
+	flex: 1 1 auto;
+	gap: 0.3rem;
+	min-width: 0;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-compact) .fcpt-image-intro,
+.fc-mcats-pro-li:has(.fcpt-appearance-compact) .fcpt-image-intro {
+	border-radius: var(--fc-radius-thumb);
+	margin: 0;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-compact) .fcpt-image-intro img,
+.fc-mcats-pro-li:has(.fcpt-appearance-compact) .fcpt-image-intro img {
+	aspect-ratio: 1 / 1;
+	width: 96px;
+	height: 96px;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-compact) .fcpt-title,
+.fc-mcats-pro-li:has(.fcpt-appearance-compact) .fcpt-title {
+	font-size: 1.05rem;
+	font-weight: 600;
+	letter-spacing: -0.005em;
+	text-wrap: balance;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-compact) .fcpt-introtext,
+.fc-mcats-pro-li:has(.fcpt-appearance-compact) .fcpt-introtext {
+	-webkit-line-clamp: 2;
+	font-size: 0.875rem;
+	color: var(--fc-text-muted);
+}
+
+/* Decorative trailing arrow — appears on hover/focus. Pseudo content
+   is presentational; AT contract carried by title link. */
+.fc-cat-pro-li:has(.fcpt-appearance-compact)::after,
+.fc-mcats-pro-li:has(.fcpt-appearance-compact)::after {
+	content: "→";
+	position: absolute;
+	top: 50%;
+	right: 1rem;
+	transform: translateY(-50%) translateX(-6px);
+	color: var(--fc-text-muted);
+	font-size: 1.1rem;
+	opacity: 0;
+	transition: opacity var(--fc-trans), transform var(--fc-trans);
+	pointer-events: none;
+	z-index: 2;
+}
+
+.fc-cat-pro-li:has(.fcpt-appearance-compact):hover::after,
+.fc-cat-pro-li:has(.fcpt-appearance-compact):focus-within::after,
+.fc-mcats-pro-li:has(.fcpt-appearance-compact):hover::after,
+.fc-mcats-pro-li:has(.fcpt-appearance-compact):focus-within::after {
+	opacity: 1;
+	transform: translateY(-50%) translateX(0);
+	color: var(--fc-accent);
+}
+
+/* Image inside compact: no scale on hover — flat aesthetic */
+.fc-cat-pro-li:has(.fcpt-appearance-compact):hover .fcpt-image-intro img,
+.fc-mcats-pro-li:has(.fcpt-appearance-compact):hover .fcpt-image-intro img {
+	transform: none;
+}
+
+/* ── Fallback teaser cards (mcats with no Pro Layout match) ──────── */
+
 .fc-cat-pro-fallback,
 .fc-mcats-pro-fallback {
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
+	padding: 1.25rem;
 }
 
 .fc-cat-pro-fallback .fc-cat-pro-title,
@@ -270,14 +763,15 @@
 	margin: 0;
 }
 
-/* Empty-category card variant */
+/* ── Empty-category card variant ─────────────────────────────────── */
+
 .fc-cat-pro-empty {
 	max-width: 640px;
-	margin: 1.25rem auto;
-	padding: 1.25rem;
+	margin: 1.5rem auto;
+	padding: 1.5rem;
 	background: var(--fc-card-bg, #ffffff);
 	border: 1px dashed var(--fc-card-border, #e2e8f0);
-	border-radius: 8px;
+	border-radius: var(--fc-radius-card, 16px);
 	text-align: center;
 }
 
@@ -287,14 +781,59 @@
 	font-style: italic;
 }
 
-/* Reduced motion */
+/* ── Reduced motion — disables transitions, transforms, and the
+       bento intro reveal animation (WCAG 2.3.3) ──────────────────── */
+
 @media (prefers-reduced-motion: reduce) {
-	.fc-cat-pro-li,
-	.fc-mcats-pro-li {
-		transition: none;
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li),
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-image-intro img,
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-image-full img,
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-introtext,
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li)::before,
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li)::after {
+		transition: none !important;
+		animation: none !important;
 	}
-	.fc-cat-pro-li:hover,
-	.fc-mcats-pro-li:hover {
+
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li):hover {
 		transform: none;
+	}
+
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li):hover .fcpt-image-intro img,
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li):hover .fcpt-image-full img {
+		transform: none;
+	}
+
+	/* Bento intro: stays expanded (full text visible) instead of
+	   animating. Honors user's anti-motion preference without hiding
+	   content behind motion. */
+	.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-introtext,
+	.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-introtext {
+		max-height: none;
+		opacity: 1;
+	}
+}
+
+/* ── Forced-colors mode (Windows High Contrast) ──────────────────── */
+
+@media (forced-colors: active) {
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li) {
+		border: 1px solid CanvasText;
+	}
+
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-title a:focus-visible {
+		outline: 3px solid Highlight;
+		outline-offset: 2px;
+	}
+
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-image-intro::after {
+		background: none;
+	}
+
+	.fc-cat-pro-li:has(.fcpt-appearance-bento) .fcpt-title,
+	.fc-mcats-pro-li:has(.fcpt-appearance-bento) .fcpt-title {
+		background: Canvas;
+		color: CanvasText;
+		padding: 0.25rem 0.5rem;
 	}
 }

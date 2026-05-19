@@ -1211,6 +1211,14 @@ class FlexicontentViewCategory extends \Joomla\CMS\MVC\View\HtmlView
 					\Joomla\CMS\Uri\Uri::root() . 'components/com_flexicontent/assets/css/protemplate_frontend.css',
 					array('version' => FLEXI_VHASH)
 				);
+				// WCAG 1.4.13 — Escape-key dismissal for the bento overlay's
+				// hover/focus intro reveal. No-op when no bento card is present.
+				$document->getWebAssetManager()->registerAndUseScript(
+					'fc-protemplate-frontend',
+					\Joomla\CMS\Uri\Uri::root() . 'components/com_flexicontent/assets/js/protemplate_frontend.js',
+					array('version' => FLEXI_VHASH),
+					array('defer' => true)
+				);
 
 				// Category default layout now renders the matched category-
 				// scope Pro Layout ONCE PER ITEM (teaser feed), not once per
@@ -1287,11 +1295,17 @@ class FlexicontentViewCategory extends \Joomla\CMS\MVC\View\HtmlView
 			// already wraps non-item context in <article>, so the document
 			// outline becomes: ul > li > article > h2 — a valid teaser feed.
 			try {
-				// Same Pro Layout frontend stylesheet as the default branch.
+				// Same Pro Layout frontend stylesheet + JS as the default branch.
 				$document->getWebAssetManager()->registerAndUseStyle(
 					'fc-protemplate-frontend',
 					\Joomla\CMS\Uri\Uri::root() . 'components/com_flexicontent/assets/css/protemplate_frontend.css',
 					array('version' => FLEXI_VHASH)
+				);
+				$document->getWebAssetManager()->registerAndUseScript(
+					'fc-protemplate-frontend',
+					\Joomla\CMS\Uri\Uri::root() . 'components/com_flexicontent/assets/js/protemplate_frontend.js',
+					array('version' => FLEXI_VHASH),
+					array('defer' => true)
 				);
 				echo '<ul class="fc-mcats-pro-list">';
 				$_proRenderer = new \FlexicontentProTemplateRenderer();

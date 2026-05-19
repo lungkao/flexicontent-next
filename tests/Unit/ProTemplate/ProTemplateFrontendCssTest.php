@@ -162,6 +162,8 @@ class ProTemplateFrontendCssTest extends TestCase
 		$src  = file_get_contents($view);
 		$this->assertNotFalse($src);
 
+		// CSS registered in both branches (default + mcats) = 2 occurrences.
+		// JS registered in both branches = 2 more. Total = 4.
 		$occurrences = substr_count($src, "'fc-protemplate-frontend'");
 		$this->assertGreaterThanOrEqual(2, $occurrences,
 			'fc-protemplate-frontend asset must be registered in both Pro Layout branches');
@@ -170,6 +172,150 @@ class ProTemplateFrontendCssTest extends TestCase
 			'protemplate_frontend.css',
 			$src,
 			'view must reference the new CSS filename'
+		);
+		$this->assertStringContainsString(
+			'protemplate_frontend.js',
+			$src,
+			'view must reference the new JS filename for Escape-dismiss support'
+		);
+	}
+
+	// ── v2: 4 distinct treatment regression guards ──────────────────
+
+	public function testTreatmentSwitchUsesHasSelector(): void
+	{
+		// :has() drives the per-treatment layout switch. Removing it
+		// collapses all four presets back to a uniform grid card.
+		$css = $this->css();
+		$this->assertMatchesRegularExpression(
+			'#:has\(\s*\.fcpt-appearance-feature\s*\)#',
+			$css,
+			'Magazine Hero treatment must key off :has(.fcpt-appearance-feature)'
+		);
+		$this->assertMatchesRegularExpression(
+			'#:has\(\s*\.fcpt-appearance-bento\s*\)#',
+			$css,
+			'Asymmetric Bento treatment must key off :has(.fcpt-appearance-bento)'
+		);
+		$this->assertMatchesRegularExpression(
+			'#:has\(\s*\.fcpt-row\.fcpt-appearance-compact\s*\)#',
+			$css,
+			'Notion List treatment must key off :has(.fcpt-row.fcpt-appearance-compact)'
+		);
+	}
+
+	public function testBentoScrimGuaranteesContrast(): void
+	{
+		// a11y-lead required tweak (b): scrim must hold solid 0.78+ alpha
+		// from 55%→100% — gradient mid-points cannot dip below the
+		// contrast floor when title text wraps over them.
+		$css = $this->css();
+		$this->assertMatchesRegularExpression(
+			'#--fc-scrim-grad:[^;]*rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\.(78|8|85|9)#',
+			$css,
+			'bento scrim must hold solid 0.78+ alpha at the text band'
+		);
+	}
+
+	public function testNoDualFocusRing(): void
+	{
+		// a11y-lead required tweak (g): focus indicator must come from the
+		// link outline only, NOT a card-level focus-within glow.
+		$css = $this->css();
+		// Card-level focus-within is allowed for subtle bg-tint signaling,
+		// but it must not add an inset shadow or outline (= second ring).
+		$this->assertDoesNotMatchRegularExpression(
+			'#:focus-within\s*\{[^}]*box-shadow\s*:\s*inset[^}]*var\(--fc-focus-ring\)#s',
+			$css,
+			'card-level :focus-within must not paint an inset ring (would be a second focus indicator)'
+		);
+		$this->assertDoesNotMatchRegularExpression(
+			'#\.fc-cat-pro-li:focus-within\s*\{[^}]*outline\s*:#s',
+			$css,
+			'card-level :focus-within must not draw an outline (link link outline is the focus indicator)'
+		);
+	}
+
+	public function testBentoEscapeDismissPattern(): void
+	{
+		// Bento intro reveal must support data-fc-dismissed attribute so
+		// the Escape-key JS can collapse the revealed text while focus or
+		// hover remains on the card (WCAG 1.4.13).
+		$this->assertMatchesRegularExpression(
+			'#\[data-fc-dismissed="true"\][^{]*\.fcpt-introtext#s',
+			$this->css(),
+			'data-fc-dismissed selector must force the intro back to collapsed'
+		);
+	}
+
+	public function testReducedMotionRestoresBentoFullText(): void
+	{
+		// In reduced-motion mode the bento intro stays revealed (max-height:
+		// none, opacity: 1) instead of animating. Otherwise the user can
+		// never see the text without triggering an animation.
+		$this->assertMatchesRegularExpression(
+			'#prefers-reduced-motion:\s*reduce.*?\.fcpt-appearance-bento[^{]*\.fcpt-introtext\s*\{[^}]*max-height\s*:\s*none#s',
+			$this->css(),
+			'reduced-motion must reveal bento intro non-animated'
+		);
+	}
+
+	public function testForcedColorsModePresent(): void
+	{
+		// Windows High Contrast support — borders use CanvasText, focus
+		// outline uses Highlight, bento scrim disabled (system handles it).
+		$css = $this->css();
+		$this->assertStringContainsString('@media (forced-colors: active)', $css);
+		$this->assertStringContainsString('CanvasText', $css);
+		$this->assertStringContainsString('Highlight', $css);
+	}
+
+	public function testEyebrowEmittedViaCssContent(): void
+	{
+		// Featured "FEATURED" eyebrow comes from a CSS ::before pseudo —
+		// content is not in the DOM, so AT reads the underlying title
+		// text only. Pattern confirmed safe by a11y-lead.
+		$this->assertMatchesRegularExpression(
+			'#:has\(\.fcpt-appearance-feature\)[^{]*\.fcpt-title::before\s*\{[^}]*content\s*:\s*"Featured"#s',
+			$this->css(),
+			'Featured eyebrow must come from ::before content, not DOM markup'
+		);
+	}
+
+	public function testListAppearanceSwitchesGridColumns(): void
+	{
+		// Each treatment changes the `<ul>` grid template:
+		//   - default       → auto-fill minmax(280px)
+		//   - feature       → auto-fill minmax(420px)  (bigger cards)
+		//   - bento         → auto-fit minmax(240px) + grid-auto-rows
+		//   - compact (row) → display:block (1-col rows)
+		$css = $this->css();
+		$this->assertMatchesRegularExpression(
+			'#:has\(\.fcpt-appearance-feature\)[^{]*\{[^}]*grid-template-columns#s',
+			$css,
+			'Feature variant must override grid-template-columns'
+		);
+		$this->assertMatchesRegularExpression(
+			'#:has\(\.fcpt-appearance-bento\)[^{]*\{[^}]*grid-auto-rows#s',
+			$css,
+			'Bento variant must set grid-auto-rows for span calculations'
+		);
+		$this->assertMatchesRegularExpression(
+			'#:has\(\.fcpt-row\.fcpt-appearance-compact\)[^{]*\{[^}]*display\s*:\s*block#s',
+			$css,
+			'Compact variant must switch list to block (1-col rows)'
+		);
+	}
+
+	public function testWhereSelectorForOverrideSafety(): void
+	{
+		// :where() drops specificity so YOOtheme / Joomla template
+		// overrides win without `!important`. Confirm at least one
+		// :where() default rule exists for the card baseline.
+		$this->assertStringContainsString(
+			':where(.fc-cat-pro-li, .fc-mcats-pro-li)',
+			$this->css(),
+			'card baseline must be wrapped in :where() so theme CSS can override naturally'
 		);
 	}
 }
