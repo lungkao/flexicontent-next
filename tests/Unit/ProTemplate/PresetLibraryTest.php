@@ -47,7 +47,54 @@ class PresetLibraryTest extends TestCase
 	public function testThemePresetsCount(): void
 	{
 		$themes = \FlexicontentProTemplatePresetLibrary::getThemePresets();
-		$this->assertCount(6, $themes, 'Theme library should expose 6 presets');
+		$this->assertCount(9, $themes, 'Theme library should expose 9 presets (6 original + 3 added in 6.1.0-beta.4 for CSS variety + font config).');
+	}
+
+	public function testThemePresetsCoverDistinctHeadingFontFamilies(): void
+	{
+		$themes = \FlexicontentProTemplatePresetLibrary::getThemePresets();
+
+		$families = [];
+		foreach ($themes as $t) {
+			$families[] = strtolower($t['theme_data']['typography']['family_heading']);
+		}
+
+		$unique = array_unique($families);
+
+		// We require at least 4 distinct heading font stacks across the
+		// library so users have real typographic variety (sans, serif,
+		// display serif, monospace) — not just color swaps.
+		$this->assertGreaterThanOrEqual(
+			4,
+			count($unique),
+			'Theme library must expose at least 4 distinct heading font stacks for typographic variety.'
+		);
+	}
+
+	public function testThemePresetsAdvertiseSerifMonoAndSansHeadings(): void
+	{
+		$themes = \FlexicontentProTemplatePresetLibrary::getThemePresets();
+
+		$hasSerif = false;
+		$hasMono  = false;
+		$hasSans  = false;
+
+		foreach ($themes as $t) {
+			$h = strtolower($t['theme_data']['typography']['family_heading']);
+			if (str_contains($h, 'serif') || str_contains($h, 'georgia') || str_contains($h, 'garamond') || str_contains($h, 'playfair')) {
+				$hasSerif = true;
+			}
+			if (str_contains($h, 'mono') || str_contains($h, 'jetbrains')) {
+				$hasMono = true;
+			}
+			if (str_contains($h, 'inter') || str_contains($h, 'system-ui') || str_contains($h, 'quicksand') || str_contains($h, 'sans-serif')) {
+				$hasSans = true;
+			}
+		}
+
+		$this->assertTrue($hasSerif, 'Theme library must include at least one serif heading family.');
+		$this->assertTrue($hasMono,  'Theme library must include at least one monospace heading family.');
+		$this->assertTrue($hasSans,  'Theme library must include at least one sans-serif heading family.');
 	}
 
 	public function testScopeClampFallsBackToItem(): void

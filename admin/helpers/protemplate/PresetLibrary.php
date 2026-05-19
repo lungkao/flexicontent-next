@@ -703,6 +703,91 @@ class FlexicontentProTemplatePresetLibrary
 					'mode'   => 'light',
 				],
 			],
+
+			// ── CSS variety + font config additions (6.1.0-beta.4) ──────
+			// Each new preset deliberately picks a distinct heading
+			// typeface so the library covers more visual territory:
+			//   bold-tech     → JetBrains Mono headings, dark surface
+			//   soft-pastel   → Quicksand round sans, warm surface, pill radius
+			//   serif-classic → Cormorant Garamond display + Lora body
+			// All keep WCAG 1.4.3 (>=4.5:1 body text contrast) and 1.4.11
+			// (>=3:1 accent/border against surface).
+
+			[
+				'key'             => 'bold-tech',
+				'title_key'       => 'FLEXI_PRESET_THEME_BOLD_TECH',
+				'description_key' => 'FLEXI_PRESET_THEME_BOLD_TECH_DESC',
+				'group'           => 'modern',
+				'thumbnail'       => self::thumbTheme('#ec4899', '#0a0a0a', '#fafafa'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#ec4899',
+						'surface'     => '#0a0a0a',
+						'surface_alt' => '#171717',
+						'text'        => '#fafafa',
+						'text_muted'  => '#a3a3a3',
+						'border'      => '#404040',
+					],
+					'typography' => [
+						'family'         => 'Inter, system-ui, sans-serif',
+						'family_heading' => '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace',
+						'scale'          => 1.0,
+						'line_height'    => 1.55,
+					],
+					'radius' => 'sm',
+					'mode'   => 'dark',
+				],
+			],
+			[
+				'key'             => 'soft-pastel',
+				'title_key'       => 'FLEXI_PRESET_THEME_SOFT_PASTEL',
+				'description_key' => 'FLEXI_PRESET_THEME_SOFT_PASTEL_DESC',
+				'group'           => 'minimal',
+				'thumbnail'       => self::thumbTheme('#fb923c', '#fef7f3', '#292524'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#c2410c',
+						'surface'     => '#fef7f3',
+						'surface_alt' => '#fce7d9',
+						'text'        => '#292524',
+						'text_muted'  => '#57534e',
+						'border'      => '#e7d3c0',
+					],
+					'typography' => [
+						'family'         => 'Quicksand, "Nunito Sans", system-ui, sans-serif',
+						'family_heading' => 'Quicksand, "Nunito Sans", system-ui, sans-serif',
+						'scale'          => 1.05,
+						'line_height'    => 1.7,
+					],
+					'radius' => 'lg',
+					'mode'   => 'light',
+				],
+			],
+			[
+				'key'             => 'serif-classic',
+				'title_key'       => 'FLEXI_PRESET_THEME_SERIF_CLASSIC',
+				'description_key' => 'FLEXI_PRESET_THEME_SERIF_CLASSIC_DESC',
+				'group'           => 'editorial',
+				'thumbnail'       => self::thumbTheme('#1e40af', '#fefce8', '#422006'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#1e40af',
+						'surface'     => '#fefce8',
+						'surface_alt' => '#fef9c3',
+						'text'        => '#422006',
+						'text_muted'  => '#713f12',
+						'border'      => '#d4af37',
+					],
+					'typography' => [
+						'family'         => 'Lora, "Iowan Old Style", Georgia, serif',
+						'family_heading' => '"Cormorant Garamond", "Times New Roman", serif',
+						'scale'          => 1.1,
+						'line_height'    => 1.75,
+					],
+					'radius' => 'sm',
+					'mode'   => 'light',
+				],
+			],
 		];
 	}
 
