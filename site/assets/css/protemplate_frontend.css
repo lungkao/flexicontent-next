@@ -1653,6 +1653,71 @@
 }
 
 /* =================================================================
+   BACKGROUND GRADIENT + ANIMATION — production CSS hookup
+   -----------------------------------------------------------------
+   Renderer.protemplate.Renderer.themeStyleAttr() emits these tokens
+   when the user picks appearance.gradientPreset / .animation /
+   .surfaceStyle on a Custom Theme:
+
+     --fc-bg-image          linear-gradient(...)  (aurora|sunset|...)
+     --fc-bg-animation      fcBgDrift 8|16s ease-in-out infinite alternate
+     --fc-bg-size           220% 220%
+     --fc-surface-backdrop  blur(20px) saturate(140%)
+     --fc-card-bg           transparent             (outline surface)
+
+   Without the rules below the tokens are emitted but no element
+   consumes them, so the visual effect never renders. Honors
+   prefers-reduced-motion (no animation) and forced-colors (no
+   gradient bg, system colors take over).
+   ================================================================= */
+
+.fc-cat-pro-list,
+.fc-mcats-pro-list {
+	background-image: var(--fc-bg-image, none);
+	background-size: var(--fc-bg-size, auto);
+	background-position: 0% 0%;
+	background-repeat: no-repeat;
+	animation: var(--fc-bg-animation, none);
+}
+
+/* Glass surface — backdrop-filter on the card. The token is opt-in
+   (defaults to none) so non-glass themes pay no compositing cost. */
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) {
+	-webkit-backdrop-filter: var(--fc-surface-backdrop, none);
+	        backdrop-filter: var(--fc-surface-backdrop, none);
+}
+
+/* Keyframes — drifts the background gradient diagonally. Paired
+   with --fc-bg-size: 220% 220% so the gradient is bigger than the
+   viewport and the position shift produces visible motion without
+   reflow or layout cost. */
+@keyframes fcBgDrift {
+	0%   { background-position:   0%   0%; }
+	50%  { background-position: 100% 100%; }
+	100% { background-position:   0%   0%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.fc-cat-pro-list,
+	.fc-mcats-pro-list {
+		animation: none !important;
+		background-position: 0% 0% !important;
+	}
+}
+
+@media (forced-colors: active) {
+	.fc-cat-pro-list,
+	.fc-mcats-pro-list {
+		background-image: none !important;
+	}
+
+	:where(.fc-cat-pro-li, .fc-mcats-pro-li) {
+		-webkit-backdrop-filter: none;
+		        backdrop-filter: none;
+	}
+}
+
+/* =================================================================
    PRINT — reset all theme decoration to solid ink
    ================================================================= */
 
