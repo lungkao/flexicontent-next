@@ -102,6 +102,23 @@ class PresetLibraryTest extends TestCase
 		}
 	}
 
+	public function testRendererInlineThemeStyleHelpersExist(): void
+	{
+		// Custom Theme bug fix (beta.12): Renderer must build inline
+		// CSS custom properties from theme_data so user-authored Custom
+		// Themes work without a matching CSS [data-fcpt-theme="..."]
+		// rule. Pattern lifted from fieldlayout LayoutRenderer.
+		$src = file_get_contents(dirname(__DIR__, 3)
+			. '/admin/helpers/protemplate/Renderer.php');
+		$this->assertNotFalse($src);
+		$this->assertStringContainsString('protected function buildThemeStyleAttribute', $src);
+		$this->assertStringContainsString('protected function resolveThemeData', $src);
+		$this->assertStringContainsString('protected function resolveThemeKey', $src);
+		$this->assertStringContainsString('protected function loadThemeRow', $src);
+		// Inline style must be appended to the wrapper div.
+		$this->assertStringContainsString('$themeStyle . \'>\'', $src);
+	}
+
 	public function testCyberNeonBodyFontIsNotMonospace(): void
 	{
 		// a11y-lead required tweak: monospace at body sizes harms

@@ -91,9 +91,40 @@ class FlexicontentProTemplateRenderer
 		$this->prefetchFieldMeta($layout);
 
 		$settings = $layout['settings'] ?? [];
-		$theme    = $this->escAttr($settings['theme']   ?? 'clean');
-		$width    = $this->escAttr($settings['width']   ?? 'default');
-		$spacing  = $this->escAttr($settings['spacing'] ?? 'normal');
+		// Theme resolution — hybrid pattern (inspired by fieldlayout
+		// LayoutRenderer at /Users/pisan/Sites/fieldlayout/build/
+		// plg_content_fieldlayout/src/Service/LayoutRenderer.php):
+		//
+		//   1. settings.theme   (string key, e.g. "aurora") — explicit
+		//   2. settings.themeId (int DB row id) — resolved via lookup
+		//   3. fallback "clean"
+		//
+		// The admin builder saves themeId (numeric DB row), while older
+		// hand-edited layouts may carry a 'theme' string key. Both must
+		// reach the same [data-fcpt-theme="..."] selector in the CSS.
+		//
+		// In addition, when we resolve via themeId we ALSO load the
+		// theme_data JSON (colors/typography tokens) and emit them as
+		// inline CSS custom properties on the wrapper. That makes
+		// user-authored Custom Themes work without needing a matching
+		// CSS [data-fcpt-theme="..."] rule for every custom key — the
+		// inline tokens override the preset baseline directly.
+		$themeKey  = (string) ($settings['theme'] ?? '');
+		$themeData = [];
+		if ((int) ($settings['themeId'] ?? 0) > 0) {
+			$resolvedKey = $this->resolveThemeKey((int) $settings['themeId']);
+			if ($themeKey === '' && $resolvedKey !== null) {
+				$themeKey = $resolvedKey;
+			}
+			$themeData = $this->resolveThemeData((int) $settings['themeId']);
+		}
+		if ($themeKey === '') {
+			$themeKey = 'clean';
+		}
+		$theme       = $this->escAttr($themeKey);
+		$width       = $this->escAttr($settings['width']   ?? 'default');
+		$spacing     = $this->escAttr($settings['spacing'] ?? 'normal');
+		$themeStyle  = $this->buildThemeStyleAttribute($themeData);
 
 		$sectionsHtml = '';
 		foreach (($layout['sections'] ?? []) as $section) {
@@ -115,7 +146,8 @@ class FlexicontentProTemplateRenderer
 		return '<div class="fcpt-layout"'
 			. ' data-fcpt-theme="'   . $theme   . '"'
 			. ' data-fcpt-width="'   . $width   . '"'
-			. ' data-fcpt-spacing="' . $spacing . '">'
+			. ' data-fcpt-spacing="' . $spacing . '"'
+			. $themeStyle . '>'
 			. '<' . $contentWrapTag . $contentWrapAttribs . '>'
 			. $sectionsHtml
 			. '</' . $contentWrapTag . '>'
@@ -636,6 +668,174 @@ class FlexicontentProTemplateRenderer
 	protected function escAttr($v): string
 	{
 		return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
+	}
+
+	/** In-process cache for themeId → {key, data} lookups. */
+	protected $themeRowCache = [];
+
+	/**
+	 * Load and decode a single #__flexicontent_pro_themes row by id.
+	 * Cached per-instance. Returns null when row missing/unpublished/
+	 * invalid JSON; returns ['key'=>?string, 'data'=>?array].
+	 */
+	protected function loadThemeRow(int $id): ?array
+	{
+		if ($id <= 0) return null;
+		if (array_key_exists($id, $this->themeRowCache)) {
+			return $this->themeRowCache[$id];
+		}
+		try {
+			$db = \Joomla\CMS\Factory::getDbo();
+			$query = $db->getQuery(true)
+				->select($db->quoteName(['title','theme_data','state']))
+				->from($db->quoteName('#__flexicontent_pro_themes'))
+				->where($db->quoteName('id') . ' = ' . (int) $id);
+			$row = $db->setQuery($query)->loadAssoc();
+		} catch (\Throwable $e) {
+			$this->themeRowCache[$id] = null;
+			return null;
+		}
+		if (!$row || (int) ($row['state'] ?? 0) !== 1) {
+			$this->themeRowCache[$id] = null;
+			return null;
+		}
+		$decoded = json_decode((string) ($row['theme_data'] ?? ''), true);
+		$key = null;
+		if (is_array($decoded) && !empty($decoded['preset_key']) && is_string($decoded['preset_key'])) {
+			$key = $decoded['preset_key'];
+		} else {
+			$slug = $this->slugifyThemeTitle((string) ($row['title'] ?? ''));
+			$key  = $slug !== '' ? $slug : null;
+		}
+		$this->themeRowCache[$id] = [
+			'key'  => $key,
+			'data' => is_array($decoded) ? $decoded : [],
+		];
+		return $this->themeRowCache[$id];
+	}
+
+	/**
+	 * Resolve a #__flexicontent_pro_themes row id to its CSS selector
+	 * key (the string used in `[data-fcpt-theme="..."]`).
+	 */
+	protected function resolveThemeKey(int $id): ?string
+	{
+		$row = $this->loadThemeRow($id);
+		return $row['key'] ?? null;
+	}
+
+	/**
+	 * Resolve a #__flexicontent_pro_themes row id to its decoded
+	 * theme_data array (colors + typography). Returns [] when not found.
+	 */
+	protected function resolveThemeData(int $id): array
+	{
+		$row = $this->loadThemeRow($id);
+		return ($row && is_array($row['data'])) ? $row['data'] : [];
+	}
+
+	/**
+	 * Kebab-case a theme title.
+	 *   "Ocean Glass" → "ocean-glass"
+	 */
+	protected function slugifyThemeTitle(string $title): string
+	{
+		$title = strtolower(trim($title));
+		$title = preg_replace('/[^a-z0-9]+/', '-', $title);
+		return trim((string) $title, '-');
+	}
+
+	/**
+	 * Build inline `style="--fc-accent: #X; --fc-surface: #Y; ..."`
+	 * from a decoded theme_data array. Empty string when nothing to
+	 * apply. Pattern lifted from fieldlayout LayoutRenderer (see
+	 * /Users/pisan/Sites/fieldlayout/build/plg_content_fieldlayout/
+	 * src/Service/LayoutRenderer.php::buildThemeStyleAttribute).
+	 *
+	 * Inline CSS custom properties take precedence over the preset
+	 * CSS [data-fcpt-theme="..."] rules, so a user-authored Custom
+	 * Theme overrides the preset baseline without needing a matching
+	 * CSS rule for its key.
+	 *
+	 * Only emits well-formed hex / CSS values — anything that looks
+	 * like a tag injection or contains CSS-terminator characters is
+	 * dropped.
+	 */
+	protected function buildThemeStyleAttribute(array $themeData): string
+	{
+		if (!$themeData) return '';
+
+		$colors = is_array($themeData['colors'] ?? null) ? $themeData['colors'] : [];
+		$typography = is_array($themeData['typography'] ?? null) ? $themeData['typography'] : [];
+
+		// Map theme_data keys → CSS custom property names used by
+		// site/assets/css/protemplate_frontend.css.
+		$map = [
+			'--fc-accent'        => $colors['accent']      ?? '',
+			'--fc-accent-solid'  => $colors['accent']      ?? '',
+			'--fc-card-bg'       => $colors['surface']     ?? '',
+			'--fc-card-bg-elev'  => $colors['surface_alt'] ?? '',
+			'--fc-card-border'   => $colors['border']      ?? '',
+			'--fc-text'          => $colors['text']        ?? '',
+			'--fc-text-muted'    => $colors['text_muted']  ?? '',
+			'--fc-focus-ring'    => $colors['focus_ring']  ?? ($colors['accent'] ?? ''),
+		];
+
+		$decls = [];
+		foreach ($map as $prop => $val) {
+			$safe = $this->sanitizeCssToken((string) $val);
+			if ($safe === '') continue;
+			$decls[] = $prop . ': ' . $safe;
+		}
+
+		// Accent gradient — optional, only when present in theme_data.
+		if (!empty($colors['accent_grad'])) {
+			$grad = $this->sanitizeCssGradient((string) $colors['accent_grad']);
+			if ($grad !== '') {
+				$decls[] = '--fc-accent-gradient: ' . $grad;
+			}
+		}
+
+		// Typography — body + heading font stacks. These override the
+		// inline tokens set by the Google Fonts loader (lower
+		// precedence) for hand-crafted Custom Themes that pick a font
+		// outside the loader's catalog.
+		$bodyStack = (string) ($typography['family'] ?? '');
+		if ($bodyStack !== '') {
+			$safe = $this->sanitizeCssToken($bodyStack);
+			if ($safe !== '') $decls[] = '--fc-font-body: ' . $safe;
+		}
+		$headingStack = (string) ($typography['family_heading'] ?? '');
+		if ($headingStack !== '') {
+			$safe = $this->sanitizeCssToken($headingStack);
+			if ($safe !== '') $decls[] = '--fc-font-heading: ' . $safe;
+		}
+
+		if (!$decls) return '';
+		return ' style="' . htmlspecialchars(implode('; ', $decls), ENT_QUOTES, 'UTF-8') . '"';
+	}
+
+	/**
+	 * Strip CSS-significant + tag-injection chars from a token value.
+	 */
+	protected function sanitizeCssToken(string $v): string
+	{
+		$v = preg_replace('#</?[a-z]#i', '', $v);
+		$v = str_replace(['{', '}', ';', '"', "\n", "\r"], '', $v);
+		return trim((string) $v);
+	}
+
+	/**
+	 * Whitelist CSS gradient values. Allows linear-gradient / radial-
+	 * gradient with comma-separated stops and basic hex/rgba colors.
+	 */
+	protected function sanitizeCssGradient(string $v): string
+	{
+		$v = trim($v);
+		if (!preg_match('#^(linear|radial)-gradient\([^;{}<>"\']+\)$#i', $v)) {
+			return '';
+		}
+		return $v;
 	}
 
 	/**
