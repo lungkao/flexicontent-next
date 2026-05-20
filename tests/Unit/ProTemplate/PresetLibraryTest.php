@@ -47,7 +47,71 @@ class PresetLibraryTest extends TestCase
 	public function testThemePresetsCount(): void
 	{
 		$themes = \FlexicontentProTemplatePresetLibrary::getThemePresets();
-		$this->assertCount(9, $themes, 'Theme library should expose 9 presets (6 original + 3 added in 6.1.0-beta.4 for CSS variety + font config).');
+		// 6 original + 3 added in 6.1.0-beta.4 (CSS variety + font config)
+		// + 6 expressive themes added in 6.1.0-beta.9 (aurora, sunset,
+		// ocean-glass, cyber-neon, pastel-dream, monochrome-plus) = 15.
+		$this->assertCount(15, $themes, 'Theme library should expose 15 presets after the v3 expressive theme ship.');
+	}
+
+	public function testV3ExpressiveThemesPresent(): void
+	{
+		$themes = \FlexicontentProTemplatePresetLibrary::getThemePresets();
+		$keys   = array_column($themes, 'key');
+		foreach (['aurora','sunset','ocean-glass','cyber-neon','pastel-dream','monochrome-plus'] as $expected) {
+			$this->assertContains(
+				$expected,
+				$keys,
+				"v3 expressive theme '$expected' missing from PresetLibrary — CSS selector orphaned"
+			);
+		}
+	}
+
+	public function testV3ThemesShipFocusRingTokenPinnedToAccent(): void
+	{
+		// a11y-lead required tweak: focus ring must use accent colour
+		// (not a gradient stop) so 3:1 against surface is guaranteed.
+		$themes = \FlexicontentProTemplatePresetLibrary::getThemePresets();
+		$v3 = ['aurora','sunset','ocean-glass','pastel-dream','monochrome-plus'];
+		foreach ($themes as $t) {
+			if (!in_array($t['key'], $v3, true)) continue;
+			$this->assertArrayHasKey('focus_ring', $t['theme_data']['colors'],
+				"theme {$t['key']} must declare focus_ring");
+			$this->assertSame(
+				$t['theme_data']['colors']['accent'],
+				$t['theme_data']['colors']['focus_ring'],
+				"theme {$t['key']} focus_ring must equal accent (a11y-lead tweak)"
+			);
+		}
+		// Cyber Neon is the documented exception — focus ring uses cyan
+		// (#06b6d4, 7.4:1 on #0a0a0f), not pink (5.2:1).
+		foreach ($themes as $t) {
+			if ($t['key'] !== 'cyber-neon') continue;
+			$this->assertSame('#06b6d4', $t['theme_data']['colors']['focus_ring'],
+				'cyber-neon focus_ring must be cyan (higher contrast than pink accent)');
+		}
+	}
+
+	public function testV3ThemesShipAccentGradient(): void
+	{
+		$themes = \FlexicontentProTemplatePresetLibrary::getThemePresets();
+		$v3 = ['aurora','sunset','ocean-glass','cyber-neon','pastel-dream','monochrome-plus'];
+		foreach ($themes as $t) {
+			if (!in_array($t['key'], $v3, true)) continue;
+			$this->assertArrayHasKey('accent_grad', $t['theme_data']['colors'],
+				"theme {$t['key']} must ship an accent_grad token for the gradient-text + scrim patterns");
+		}
+	}
+
+	public function testCyberNeonBodyFontIsNotMonospace(): void
+	{
+		// a11y-lead required tweak: monospace at body sizes harms
+		// low-vision reading speed. JetBrains Mono on heading only.
+		$theme = \FlexicontentProTemplatePresetLibrary::getThemePreset('cyber-neon');
+		$this->assertNotNull($theme, 'cyber-neon theme must be findable by key');
+		$body = strtolower($theme['theme_data']['typography']['family']);
+		$this->assertStringNotContainsString('monospace', $body);
+		$this->assertStringNotContainsString('jetbrains', $body);
+		$this->assertStringContainsString('inter', $body, 'cyber-neon body must be Inter (sans), not mono');
 	}
 
 	public function testThemePresetsCoverDistinctHeadingFontFamilies(): void

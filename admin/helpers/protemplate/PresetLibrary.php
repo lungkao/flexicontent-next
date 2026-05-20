@@ -753,6 +753,199 @@ class FlexicontentProTemplatePresetLibrary
 					'mode'   => 'light',
 				],
 			],
+
+			// ── Expressive themes (6.1.0-beta.9 — v3 design ship) ───────────
+			//
+			// Pair with [data-fcpt-theme="..."] selectors in
+			// site/assets/css/protemplate_frontend.css. The `key` MUST
+			// stay in sync with the CSS selector keys — renaming one
+			// orphans the other.
+			//
+			// A11y-cleared by accessibility-lead 2026-05-20 (round 3):
+			//   - Every body-text/surface pair >=4.5:1 (1.4.3)
+			//   - Every accent-on-surface pair >=4.5:1 (accent valid as
+			//     body-text colour, not just decorative)
+			//   - focus_ring pinned to accent colour, NOT a gradient
+			//     stop — guarantees 3:1 against surface per 1.4.11
+			//   - Cyber Neon body font stays sans (Inter); JetBrains Mono
+			//     is heading-only — monospace at body size harms low-vision
+			//     reading speed
+			//   - Decorative thumbnail SVGs aria-hidden via svgFrame()
+
+			[
+				'key'             => 'aurora',
+				'title_key'       => 'FLEXI_PRESET_THEME_AURORA',
+				'description_key' => 'FLEXI_PRESET_THEME_AURORA_DESC',
+				'group'           => 'modern',
+				'thumbnail'       => self::thumbTheme('#7c3aed', '#ffffff', '#0f172a'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#7c3aed',
+						'accent_grad' => 'linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #ec4899 100%)',
+						'surface'     => '#ffffff',
+						'surface_alt' => '#fafbff',
+						'text'        => '#0f172a',
+						'text_muted'  => '#475569',
+						'border'      => '#e0e7ff',
+						'focus_ring'  => '#7c3aed',
+					],
+					'typography' => [
+						'family'         => 'Inter, system-ui, sans-serif',
+						'family_heading' => 'Inter, system-ui, sans-serif',
+						'scale'          => 1.0,
+						'line_height'    => 1.6,
+					],
+					'radius' => 'md',
+					'mode'   => 'light',
+				],
+			],
+			[
+				'key'             => 'sunset',
+				'title_key'       => 'FLEXI_PRESET_THEME_SUNSET',
+				'description_key' => 'FLEXI_PRESET_THEME_SUNSET_DESC',
+				'group'           => 'modern',
+				'thumbnail'       => self::thumbTheme('#c2410c', '#fffaf5', '#1c1917'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#c2410c',
+						'accent_grad' => 'linear-gradient(135deg, #fb923c 0%, #f43f5e 60%, #a855f7 100%)',
+						'surface'     => '#fffaf5',
+						'surface_alt' => '#fff5eb',
+						'text'        => '#1c1917',
+						'text_muted'  => '#57534e',
+						'border'      => '#fde4cd',
+						'focus_ring'  => '#c2410c',
+					],
+					'typography' => [
+						'family'         => 'Outfit, system-ui, sans-serif',
+						'family_heading' => 'Outfit, system-ui, sans-serif',
+						'scale'          => 1.0,
+						'line_height'    => 1.6,
+					],
+					'radius' => 'md',
+					'mode'   => 'light',
+				],
+			],
+			[
+				'key'             => 'ocean-glass',
+				'title_key'       => 'FLEXI_PRESET_THEME_OCEAN_GLASS',
+				'description_key' => 'FLEXI_PRESET_THEME_OCEAN_GLASS_DESC',
+				'group'           => 'modern',
+				// Body contrast 10.3:1 (#134e4a on #ffffff) — a11y-lead
+				// corrected from initial "12:1" claim.
+				'thumbnail'       => self::thumbTheme('#0e7490', '#ffffff', '#134e4a'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#0e7490',
+						'accent_grad' => 'linear-gradient(135deg, #06b6d4 0%, #0e7490 50%, #1e40af 100%)',
+						'surface'     => '#ffffff',
+						'surface_alt' => '#f0fdfa',
+						'text'        => '#134e4a',
+						'text_muted'  => '#3f6359',
+						'border'      => '#99f6e4',
+						'focus_ring'  => '#0e7490',
+					],
+					'typography' => [
+						'family'         => '"DM Sans", system-ui, sans-serif',
+						'family_heading' => '"DM Sans", system-ui, sans-serif',
+						'scale'          => 1.0,
+						'line_height'    => 1.6,
+					],
+					'radius' => 'lg',
+					'mode'   => 'light',
+				],
+			],
+			[
+				'key'             => 'cyber-neon',
+				'title_key'       => 'FLEXI_PRESET_THEME_CYBER_NEON',
+				'description_key' => 'FLEXI_PRESET_THEME_CYBER_NEON_DESC',
+				'group'           => 'dark',
+				'thumbnail'       => self::thumbTheme('#ec4899', '#0a0a0f', '#fafafa'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#ec4899',
+						'accent_grad' => 'linear-gradient(135deg, #ec4899 0%, #06b6d4 100%)',
+						'surface'     => '#0a0a0f',
+						'surface_alt' => '#14141f',
+						'text'        => '#fafafa',
+						'text_muted'  => '#a3a3a3',
+						'border'      => '#404040',
+						// a11y-lead pinned focus ring to cyan (7.4:1 on
+						// #0a0a0f) rather than the neon pink (5.2:1).
+						'focus_ring'  => '#06b6d4',
+					],
+					'typography' => [
+						// REQUIRED TWEAK: body stays sans (Inter). Monospace
+						// at body sizes harms low-vision reading speed.
+						// JetBrains Mono on heading only.
+						'family'         => 'Inter, system-ui, sans-serif',
+						'family_heading' => '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace',
+						'scale'          => 1.0,
+						'line_height'    => 1.55,
+					],
+					'radius' => 'sm',
+					'mode'   => 'dark',
+				],
+			],
+			[
+				'key'             => 'pastel-dream',
+				'title_key'       => 'FLEXI_PRESET_THEME_PASTEL_DREAM',
+				'description_key' => 'FLEXI_PRESET_THEME_PASTEL_DREAM_DESC',
+				'group'           => 'minimal',
+				'thumbnail'       => self::thumbTheme('#be185d', '#ffffff', '#500724'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#be185d',
+						'accent_grad' => 'linear-gradient(135deg, #f472b6 0%, #c084fc 50%, #60a5fa 100%)',
+						'surface'     => '#ffffff',
+						'surface_alt' => '#fdf4ff',
+						'text'        => '#500724',
+						'text_muted'  => '#831843',
+						'border'      => '#fbcfe8',
+						'focus_ring'  => '#be185d',
+					],
+					'typography' => [
+						'family'         => 'Quicksand, "Nunito Sans", system-ui, sans-serif',
+						'family_heading' => 'Quicksand, "Nunito Sans", system-ui, sans-serif',
+						'scale'          => 1.05,
+						'line_height'    => 1.7,
+					],
+					// Larger soft corners; CSS overrides --fc-radius-card.
+					'radius' => 'lg',
+					'mode'   => 'light',
+				],
+			],
+			[
+				'key'             => 'monochrome-plus',
+				'title_key'       => 'FLEXI_PRESET_THEME_MONOCHROME_PLUS',
+				'description_key' => 'FLEXI_PRESET_THEME_MONOCHROME_PLUS_DESC',
+				'group'           => 'minimal',
+				'thumbnail'       => self::thumbTheme('#000000', '#ffffff', '#000000'),
+				'theme_data'      => [
+					'colors' => [
+						'accent'      => '#000000',
+						'accent_grad' => 'linear-gradient(135deg, #000000, #404040)',
+						'surface'     => '#ffffff',
+						'surface_alt' => '#fafafa',
+						'text'        => '#000000',
+						'text_muted'  => '#525252',
+						'border'      => '#d4d4d4',
+						'focus_ring'  => '#000000',
+					],
+					'typography' => [
+						'family'         => 'Inter, system-ui, sans-serif',
+						'family_heading' => 'Inter, system-ui, sans-serif',
+						'scale'          => 1.0,
+						'line_height'    => 1.6,
+					],
+					// CSS animates --fc-accent through 4 keyframes (14s,
+					// behind prefers-reduced-motion: no-preference). Static
+					// baseline is black so reduced-motion users see
+					// canonical monochrome.
+					'radius' => 'md',
+					'mode'   => 'light',
+				],
+			],
 		];
 	}
 
