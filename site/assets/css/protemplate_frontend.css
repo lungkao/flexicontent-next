@@ -1157,6 +1157,64 @@
 	--fc-font-heading: var(--fc-font-body);
 }
 
+/* =================================================================
+   v3 fieldlayout parity tokens (beta.13)
+   Consumed by inline `style="--fc-...:..."` emitted from
+   Renderer::buildThemeStyleAttribute(). All defaults are inert so
+   themes that don't set a token fall back to the existing baseline.
+   ================================================================= */
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) a:not(.fcpt-title a):not([class*="fcpt-category"]) {
+	color: var(--fc-link-color, var(--fc-accent));
+	text-decoration: var(--fc-link-decoration, none);
+	transition: color 150ms ease;
+}
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) a:not(.fcpt-title a):not([class*="fcpt-category"]):hover {
+	color: var(--fc-link-hover-color, var(--fc-accent));
+	text-decoration: var(--fc-link-hover-decoration, underline);
+}
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li) .fcpt-title {
+	color: var(--fc-heading-color, var(--fc-text));
+	font-weight: var(--fc-heading-weight, 700);
+	letter-spacing: var(--fc-heading-letter-spacing, -0.015em);
+	text-transform: var(--fc-heading-text-transform, none);
+}
+
+@keyframes fcBgDrift {
+	0%   { background-position:   0%   0%; }
+	100% { background-position: 100% 100%; }
+}
+
+.fcpt-layout[style*="--fc-bg-image"] {
+	background-image: var(--fc-bg-image);
+	background-size: var(--fc-bg-size, auto);
+	animation: var(--fc-bg-animation, none);
+	padding: 1rem;
+	border-radius: var(--fc-radius-card, 16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.fcpt-layout[style*="--fc-bg-animation"] {
+		animation: none !important;
+	}
+}
+
+.fcpt-layout[style*="--fc-surface-backdrop"] .fc-cat-pro-li,
+.fcpt-layout[style*="--fc-surface-backdrop"] .fc-mcats-pro-li {
+	backdrop-filter: var(--fc-surface-backdrop);
+	-webkit-backdrop-filter: var(--fc-surface-backdrop);
+	background: rgba(255, 255, 255, 0.7);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+	.fcpt-layout[style*="--fc-surface-backdrop"] .fc-cat-pro-li,
+	.fcpt-layout[style*="--fc-surface-backdrop"] .fc-mcats-pro-li {
+		background: var(--fc-card-bg);
+	}
+}
+
 :where(.fc-cat-pro-li, .fc-mcats-pro-li) {
 	font-family: var(--fc-font-body);
 }

@@ -765,12 +765,17 @@ class FlexicontentProTemplateRenderer
 	{
 		if (!$themeData) return '';
 
-		$colors = is_array($themeData['colors'] ?? null) ? $themeData['colors'] : [];
+		$colors     = is_array($themeData['colors']     ?? null) ? $themeData['colors']     : [];
 		$typography = is_array($themeData['typography'] ?? null) ? $themeData['typography'] : [];
+		$link       = is_array($themeData['link']       ?? null) ? $themeData['link']       : [];
+		$heading    = is_array($themeData['heading']    ?? null) ? $themeData['heading']    : [];
+		$appearance = is_array($themeData['appearance'] ?? null) ? $themeData['appearance'] : [];
 
 		// Map theme_data keys → CSS custom property names used by
-		// site/assets/css/protemplate_frontend.css.
+		// site/assets/css/protemplate_frontend.css. Pattern lifted
+		// from fieldlayout LayoutRenderer::buildThemeStyleAttribute.
 		$map = [
+			// Core colors
 			'--fc-accent'        => $colors['accent']      ?? '',
 			'--fc-accent-solid'  => $colors['accent']      ?? '',
 			'--fc-card-bg'       => $colors['surface']     ?? '',
@@ -779,6 +784,16 @@ class FlexicontentProTemplateRenderer
 			'--fc-text'          => $colors['text']        ?? '',
 			'--fc-text-muted'    => $colors['text_muted']  ?? '',
 			'--fc-focus-ring'    => $colors['focus_ring']  ?? ($colors['accent'] ?? ''),
+			// Link tokens (v3 — fieldlayout parity)
+			'--fc-link-color'             => $link['color']               ?? '',
+			'--fc-link-hover-color'       => $link['hoverColor']          ?? '',
+			'--fc-link-decoration'        => $link['textDecoration']      ?? '',
+			'--fc-link-hover-decoration'  => $link['hoverTextDecoration'] ?? '',
+			// Heading tokens
+			'--fc-heading-color'          => $heading['color']         ?? '',
+			'--fc-heading-weight'         => $heading['fontWeight']    ?? '',
+			'--fc-heading-letter-spacing' => $heading['letterSpacing'] ?? '',
+			'--fc-heading-text-transform' => $heading['textTransform'] ?? '',
 		];
 
 		$decls = [];
@@ -794,6 +809,40 @@ class FlexicontentProTemplateRenderer
 			if ($grad !== '') {
 				$decls[] = '--fc-accent-gradient: ' . $grad;
 			}
+		}
+
+		// Background appearance — gradient bg + animation + surface style.
+		// Pattern from fieldlayout LayoutRenderer (appearance.gradientPreset
+		// / appearance.animation / appearance.surfaceStyle).
+		$bgGradients = [
+			'aurora' => 'linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #ec4899 100%)',
+			'sunset' => 'linear-gradient(135deg, #fb923c 0%, #f43f5e 60%, #a855f7 100%)',
+			'ocean'  => 'linear-gradient(135deg, #06b6d4 0%, #0e7490 50%, #1e40af 100%)',
+			'meadow' => 'linear-gradient(135deg, #16a34a 0%, #0d9488 100%)',
+			'dusk'   => 'linear-gradient(135deg, #4338ca 0%, #7c3aed 100%)',
+		];
+		$bgKey = (string) ($appearance['gradientPreset'] ?? '');
+		if (isset($bgGradients[$bgKey])) {
+			$decls[] = '--fc-bg-image: ' . $bgGradients[$bgKey];
+		}
+		$animKey = (string) ($appearance['animation'] ?? '');
+		if (in_array($animKey, ['drift','breathe'], true)) {
+			$decls[] = '--fc-bg-animation: fcBgDrift '
+				. ($animKey === 'drift' ? '16s' : '8s')
+				. ' ease-in-out infinite alternate';
+			$decls[] = '--fc-bg-size: 220% 220%';
+		}
+		$surfaceKey = (string) ($appearance['surfaceStyle'] ?? '');
+		if ($surfaceKey === 'glass') {
+			$decls[] = '--fc-surface-backdrop: blur(20px) saturate(140%)';
+		} elseif ($surfaceKey === 'outline') {
+			$decls[] = '--fc-card-bg: transparent';
+		}
+		// Card radius mapping
+		$radiusMap = ['sm'=>'4px','md'=>'8px','lg'=>'16px','xl'=>'24px','pill'=>'999px'];
+		$radiusKey = (string) ($themeData['radius'] ?? '');
+		if (isset($radiusMap[$radiusKey])) {
+			$decls[] = '--fc-radius-card: ' . $radiusMap[$radiusKey];
 		}
 
 		// Typography — body + heading font stacks. These override the
