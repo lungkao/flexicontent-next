@@ -483,11 +483,18 @@ class FlexicontentProTemplateRenderer
 		$variant   = $this->escAttr($el['variant'] ?? 'default');
 		$class     = $this->escAttr($el['class']   ?? '');
 		$nameAttr  = $this->escAttr($meta->name ?? '');
+		$typeAttr  = $this->escAttr($meta->field_type ?? '');
 		$labelId   = 'fcpt-field-' . $fieldId . '-label';
+
+		// data-fcpt-field-type lets the frontend stylesheet style per
+		// field type (image / textarea / relation / checkbox / date
+		// etc.) without per-field rules. Pattern from fieldlayout
+		// LayoutRenderer field type discrimination.
+		$typeData = $typeAttr !== '' ? ' data-fcpt-field-type="' . $typeAttr . '"' : '';
 
 		if ($showLabel && trim((string) ($meta->label ?? '')) !== '') {
 			return '<div class="fcpt-field fcpt-field--' . $nameAttr . ' fcpt-el-' . $variant . ' ' . $class . '"'
-				. ' data-field-id="' . $fieldId . '">'
+				. ' data-field-id="' . $fieldId . '"' . $typeData . '>'
 				. '<div class="fcpt-field__label" id="' . $labelId . '">'
 				. $this->escHtml(\Joomla\CMS\Language\Text::_($meta->label)) . '</div>'
 				. '<div class="fcpt-field__value" aria-labelledby="' . $labelId . '">' . $html . '</div>'
@@ -495,7 +502,7 @@ class FlexicontentProTemplateRenderer
 		}
 
 		return '<div class="fcpt-field fcpt-field--' . $nameAttr . ' fcpt-el-' . $variant . ' ' . $class . '"'
-			. ' data-field-id="' . $fieldId . '">'
+			. ' data-field-id="' . $fieldId . '"' . $typeData . '>'
 			. '<div class="fcpt-field__value">' . $html . '</div>'
 			. '</div>';
 	}
