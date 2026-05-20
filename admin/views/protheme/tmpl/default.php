@@ -290,6 +290,41 @@ $presets = \FlexicontentProTemplatePresetLibrary::getThemePresets();
 			</div>
 		</div>
 
+		<!-- Token-driven preview ─────────────────────────────────────
+		     Renders a representative .fc-cat-pro-li / .fcpt-* card
+		     inside a container that emits the FULL CSS custom
+		     property surface via tokenStyleString(). The production
+		     frontend stylesheet consumes the same tokens, so what is
+		     shown here matches what the visitor sees on the public
+		     page exactly. The container scopes the tokens so the
+		     admin chrome is unaffected. -->
+		<div class="mt-3">
+			<p style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;opacity:.6">
+				Token-driven preview (production CSS hooks)
+			</p>
+			<div class="fc-cat-pro-list" :style="tokenStyleString()">
+				<div class="fc-cat-pro-li" style="display:block;padding:1rem">
+					<figure class="fcpt-image-intro" style="background:var(--fc-card-bg-elev,#f1f5f9);aspect-ratio:16/9;border-radius:var(--fc-radius-card,8px);margin-bottom:.75rem"></figure>
+					<h2 class="fcpt-title" style="margin:0 0 .25rem">
+						<a href="#" @click.prevent>Sample article title</a>
+					</h2>
+					<time class="fcpt-created" style="font-size:.75rem;color:var(--fc-text-muted)">May 20, 2026</time>
+					<p class="fcpt-introtext" style="margin:.5rem 0">
+						This preview consumes the same CSS custom properties that the frontend Renderer emits. Adjust any color, font, or appearance token and this card updates immediately — what you see is what visitors get.
+					</p>
+					<div class="fcpt-field" data-fcpt-field-type="termlist" style="margin-top:.5rem">
+						<div class="fcpt-field__value">
+							<ul>
+								<li><a href="#" @click.prevent>Design</a></li>
+								<li><a href="#" @click.prevent>Frontend</a></li>
+								<li><a href="#" @click.prevent>WCAG</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<details class="mt-3">
 			<summary class="text-muted" style="cursor:pointer;font-size:.85rem">JSON debug</summary>
 			<pre class="mt-2 p-2 bg-light rounded" style="font-size:.75rem;max-height:240px;overflow:auto" x-text="JSON.stringify(theme, null, 2)"></pre>
@@ -408,6 +443,76 @@ function fcptThemeEditor() {
 				borderRadius: '.5rem',
 				border: '1px solid ' + this.theme.colors.border
 			};
+		},
+
+		// Live preview tokens — emits every CSS custom property the
+		// frontend stylesheet reads, so the mock card below renders
+		// EXACTLY what the visitor sees. Mirrors
+		// Renderer::buildThemeStyleAttribute() so editor + production
+		// stay in lockstep.
+		tokenStyleString() {
+			const c = this.theme.colors || {};
+			const t = this.theme.typography || {};
+			const l = this.theme.link || {};
+			const h = this.theme.heading || {};
+			const a = this.theme.appearance || {};
+			const radiusMap = { sm:'4px', md:'8px', lg:'16px', xl:'24px', pill:'999px' };
+			const parts = [];
+
+			const set = (k, v) => { if (v) parts.push(k + ':' + v); };
+			set('--fc-accent',          c.accent);
+			set('--fc-accent-solid',    c.accent);
+			set('--fc-card-bg',         c.surface);
+			set('--fc-card-bg-elev',    c.surface_alt);
+			set('--fc-card-border',     c.border);
+			set('--fc-text',            c.text);
+			set('--fc-text-muted',      c.text_muted);
+			set('--fc-focus-ring',      c.focus_ring || c.accent);
+			set('--fc-link-color',            l.color);
+			set('--fc-link-hover-color',      l.hoverColor);
+			set('--fc-link-decoration',       l.textDecoration);
+			set('--fc-link-hover-decoration', l.hoverTextDecoration);
+			set('--fc-heading-color',          h.color);
+			set('--fc-heading-weight',         h.fontWeight);
+			set('--fc-heading-letter-spacing', h.letterSpacing);
+			set('--fc-heading-text-transform', h.textTransform);
+			set('--fc-font-body',    t.family);
+			set('--fc-font-heading', t.family_heading);
+			if (c.accent_grad) set('--fc-accent-gradient', c.accent_grad);
+
+			// Gradient / animation surface (matches PHP token map).
+			const bg = GRADIENTS[a.gradientPreset];
+			if (bg) set('--fc-bg-image', bg);
+			if (a.animation === 'drift') {
+				set('--fc-bg-animation', 'fcBgDrift 16s ease-in-out infinite alternate');
+				set('--fc-bg-size', '220% 220%');
+			} else if (a.animation === 'breathe') {
+				set('--fc-bg-animation', 'fcBgDrift 8s ease-in-out infinite alternate');
+				set('--fc-bg-size', '220% 220%');
+			}
+			if (a.surfaceStyle === 'glass') {
+				set('--fc-surface-backdrop', 'blur(20px) saturate(140%)');
+			} else if (a.surfaceStyle === 'outline') {
+				set('--fc-card-bg', 'transparent');
+			}
+
+			// Per-heading h1..h6 — themeData.heading_levels[N]
+			const hl = this.theme.heading_levels || {};
+			for (let n = 1; n <= 6; n++) {
+				const lvl = hl[String(n)] || hl[n] || null;
+				if (!lvl) continue;
+				set('--fc-h' + n + '-size',           lvl.size);
+				set('--fc-h' + n + '-weight',         lvl.weight);
+				set('--fc-h' + n + '-line-height',    lvl.lineHeight);
+				set('--fc-h' + n + '-letter-spacing', lvl.letterSpacing);
+				set('--fc-h' + n + '-color',          lvl.color);
+			}
+
+			// Card radius — matches PHP radiusMap.
+			if (radiusMap[this.theme.radius]) {
+				set('--fc-radius-card', radiusMap[this.theme.radius]);
+			}
+			return parts.join(';');
 		},
 		previewBgStyle() {
 			const grad = GRADIENTS[this.theme.appearance.gradientPreset];

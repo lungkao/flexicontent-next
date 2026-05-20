@@ -15,6 +15,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Uri\Uri;
 
 require_once JPATH_ADMINISTRATOR . '/components/com_flexicontent/models/protheme.php';
 
@@ -72,6 +73,15 @@ class FlexicontentViewProtheme extends HtmlView
 		ToolbarHelper::apply('prothemes.apply');
 		ToolbarHelper::save('prothemes.save');
 		ToolbarHelper::cancel('prothemes.cancel', $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE');
+
+		// Enqueue the production frontend stylesheet so the token-
+		// driven mock card preview in tmpl/default.php consumes the
+		// same rules the public page uses. The CSS lives in the site
+		// component dir; reference it via Uri::root() so the admin
+		// page can pull it cross-context.
+		Factory::getApplication()->getDocument()->addStyleSheet(
+			Uri::root() . 'components/com_flexicontent/assets/css/protemplate_frontend.css'
+		);
 
 		parent::display($tpl);
 	}
