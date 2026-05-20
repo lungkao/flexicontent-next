@@ -852,6 +852,32 @@ class FlexicontentProTemplateRenderer
 			$decls[] = '--fc-radius-card: ' . $radiusMap[$radiusKey];
 		}
 
+		// Per-heading-level token surface — themeData['heading_levels']
+		// keyed by 1..6 with size, weight, lineHeight, letterSpacing,
+		// color. Each level only emits the properties that the user
+		// has set, so unset levels inherit the global heading token.
+		$headingLevels = is_array($themeData['heading_levels'] ?? null)
+			? $themeData['heading_levels']
+			: [];
+		foreach ([1, 2, 3, 4, 5, 6] as $lvl) {
+			$lvlKey = (string) $lvl;
+			$h = is_array($headingLevels[$lvlKey] ?? null) ? $headingLevels[$lvlKey] : null;
+			if (!$h) continue;
+
+			$hMap = [
+				"--fc-h{$lvl}-size"           => (string) ($h['size']          ?? ''),
+				"--fc-h{$lvl}-weight"         => (string) ($h['weight']        ?? ''),
+				"--fc-h{$lvl}-line-height"    => (string) ($h['lineHeight']    ?? ''),
+				"--fc-h{$lvl}-letter-spacing" => (string) ($h['letterSpacing'] ?? ''),
+				"--fc-h{$lvl}-color"          => (string) ($h['color']         ?? ''),
+			];
+			foreach ($hMap as $prop => $val) {
+				$safe = $this->sanitizeCssToken($val);
+				if ($safe === '') continue;
+				$decls[] = $prop . ': ' . $safe;
+			}
+		}
+
 		// Typography — body + heading font stacks. These override the
 		// inline tokens set by the Google Fonts loader (lower
 		// precedence) for hand-crafted Custom Themes that pick a font

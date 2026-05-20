@@ -1718,6 +1718,71 @@
 }
 
 /* =================================================================
+   PER-HEADING TOKEN CONSUMERS — h1..h6 individual control
+   -----------------------------------------------------------------
+   Renderer::buildThemeStyleAttribute() emits per-level tokens when
+   themeData['heading_levels'][1..6] is set:
+
+     --fc-h{N}-size            CSS length / clamp() / step
+     --fc-h{N}-weight          100..900
+     --fc-h{N}-line-height     1.1 .. 1.6
+     --fc-h{N}-letter-spacing  -0.02em .. 0.06em
+     --fc-h{N}-color           hex / token reference
+
+   Each property falls back to "unset" (inherits global heading or
+   user-agent default) when the token is absent, so a theme can
+   tune only the levels it cares about.
+   ================================================================= */
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li, .fcpt-item-fragment) h1 {
+	font-size:      var(--fc-h1-size, unset);
+	font-weight:    var(--fc-h1-weight, var(--fc-heading-weight, unset));
+	line-height:    var(--fc-h1-line-height, unset);
+	letter-spacing: var(--fc-h1-letter-spacing, var(--fc-heading-letter-spacing, unset));
+	color:          var(--fc-h1-color, var(--fc-heading-color, unset));
+}
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li, .fcpt-item-fragment) h2 {
+	font-size:      var(--fc-h2-size, unset);
+	font-weight:    var(--fc-h2-weight, var(--fc-heading-weight, unset));
+	line-height:    var(--fc-h2-line-height, unset);
+	letter-spacing: var(--fc-h2-letter-spacing, var(--fc-heading-letter-spacing, unset));
+	color:          var(--fc-h2-color, var(--fc-heading-color, unset));
+}
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li, .fcpt-item-fragment) h3 {
+	font-size:      var(--fc-h3-size, unset);
+	font-weight:    var(--fc-h3-weight, var(--fc-heading-weight, unset));
+	line-height:    var(--fc-h3-line-height, unset);
+	letter-spacing: var(--fc-h3-letter-spacing, var(--fc-heading-letter-spacing, unset));
+	color:          var(--fc-h3-color, var(--fc-heading-color, unset));
+}
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li, .fcpt-item-fragment) h4 {
+	font-size:      var(--fc-h4-size, unset);
+	font-weight:    var(--fc-h4-weight, var(--fc-heading-weight, unset));
+	line-height:    var(--fc-h4-line-height, unset);
+	letter-spacing: var(--fc-h4-letter-spacing, var(--fc-heading-letter-spacing, unset));
+	color:          var(--fc-h4-color, var(--fc-heading-color, unset));
+}
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li, .fcpt-item-fragment) h5 {
+	font-size:      var(--fc-h5-size, unset);
+	font-weight:    var(--fc-h5-weight, var(--fc-heading-weight, unset));
+	line-height:    var(--fc-h5-line-height, unset);
+	letter-spacing: var(--fc-h5-letter-spacing, var(--fc-heading-letter-spacing, unset));
+	color:          var(--fc-h5-color, var(--fc-heading-color, unset));
+}
+
+:where(.fc-cat-pro-li, .fc-mcats-pro-li, .fcpt-item-fragment) h6 {
+	font-size:      var(--fc-h6-size, unset);
+	font-weight:    var(--fc-h6-weight, var(--fc-heading-weight, unset));
+	line-height:    var(--fc-h6-line-height, unset);
+	letter-spacing: var(--fc-h6-letter-spacing, var(--fc-heading-letter-spacing, unset));
+	color:          var(--fc-h6-color, var(--fc-heading-color, unset));
+}
+
+/* =================================================================
    PRINT — reset all theme decoration to solid ink
    ================================================================= */
 
