@@ -192,8 +192,60 @@ $coreElementsJson = json_encode([
 					<span x-show="!previewMode"><?= Text::_('FLEXI_PROTEMPLATE_PREVIEW') ?></span>
 					<span x-show="previewMode"><?= Text::_('FLEXI_PROTEMPLATE_EDIT_MODE') ?></span>
 				</button>
-				<span class="fcpt-autosave-status" x-text="autosave.status"></span>
+				<span class="fcpt-autosave-status"
+				      role="status"
+				      x-text="autosave.status"></span>
 			</div>
+
+			<!-- ── Restore panel ───────────────────────────────────────
+				 Lists recent revisions (autosaves + manual saves).
+				 Restore loads the chosen revision into client state and
+				 opens a confirm dialog; user must press Save to persist.
+				 Separate role="status" region announces restore result.
+			-->
+			<details class="fcpt-revisions-panel"
+			         x-show="autosave.layoutId > 0"
+			         @toggle="onRevisionsToggle($event)">
+				<summary>
+					<span><?= Text::_('FLEXI_PROTEMPLATE_EARLIER_VERSIONS') ?></span>
+					<span class="fcpt-revisions-count"
+					      aria-hidden="true"
+					      x-text="'(' + revisions.list.length + ')'"></span>
+					<span class="visually-hidden"
+					      x-text="revisions.list.length + ' saved versions'"></span>
+				</summary>
+				<p class="fcpt-revisions-help">
+					<?= Text::_('FLEXI_PROTEMPLATE_REVISIONS_HELP') ?>
+				</p>
+				<ul role="list" x-show="revisions.list.length > 0">
+					<template x-for="rev in revisions.list" :key="rev.id">
+						<li class="fcpt-revisions-item">
+							<div class="fcpt-revisions-meta">
+								<strong x-text="rev.note || 'autosave'"></strong>
+								<time :datetime="rev.created"
+								      :title="rev.created"
+								      :id="'fcpt-rev-time-' + rev.id"
+								      x-text="formatRevisionTime(rev.created)"></time>
+							</div>
+							<button type="button"
+							        class="btn btn-sm btn-outline-primary"
+							        @click="askRestore(rev, $event.currentTarget)"
+							        :aria-describedby="'fcpt-rev-time-' + rev.id">
+								<?= Text::_('FLEXI_PROTEMPLATE_RESTORE') ?>
+							</button>
+						</li>
+					</template>
+				</ul>
+				<p class="fcpt-revisions-empty"
+				   x-show="revisions.list.length === 0">
+					<?= Text::_('FLEXI_PROTEMPLATE_NO_REVISIONS') ?>
+				</p>
+			</details>
+
+			<!-- Restore status (separate region — different priority than autosave) -->
+			<span class="fcpt-revisions-status visually-hidden"
+			      role="status"
+			      x-text="revisions.status"></span>
 
 			<div x-show="layout.sections.length === 0" class="fcpt-empty-state">
 				<h3><?= Text::_('FLEXI_PROTEMPLATE_BUILDER_EMPTY') ?></h3>
@@ -494,6 +546,50 @@ $coreElementsJson = json_encode([
 			</div>
 		</div>
 
+		<!-- Restore confirm dialog ──────────────────────────
+			 role="alertdialog" — destructive action needs explicit
+			 confirmation. Cancel is the default focus target so a
+			 stray Enter key cannot clobber the live layout.
+		-->
+		<div class="fcpt-modal-backdrop"
+		     x-show="revisions.confirm.open"
+		     x-cloak
+		     x-transition.opacity
+		     @keydown.escape.window="cancelRestore()"
+		     @click.self="cancelRestore()">
+			<div class="fcpt-element-modal"
+			     role="alertdialog"
+			     aria-modal="true"
+			     aria-labelledby="fcpt-restore-title"
+			     aria-describedby="fcpt-restore-desc">
+				<div class="fcpt-modal-head">
+					<h3 id="fcpt-restore-title">
+						<?= Text::_('FLEXI_PROTEMPLATE_RESTORE_CONFIRM_TITLE') ?>
+					</h3>
+				</div>
+				<p id="fcpt-restore-desc">
+					<?= Text::_('FLEXI_PROTEMPLATE_RESTORE_CONFIRM_BODY') ?>
+					<strong x-text="formatRevisionTime(revisions.confirm.created)"></strong>
+				</p>
+				<p class="fcpt-restore-warn">
+					<?= Text::_('FLEXI_PROTEMPLATE_RESTORE_CONFIRM_WARN') ?>
+				</p>
+				<div class="fcpt-modal-actions">
+					<button type="button"
+					        class="btn btn-outline-secondary"
+					        x-ref="restoreCancelBtn"
+					        @click="cancelRestore()">
+						<?= Text::_('JCANCEL') ?>
+					</button>
+					<button type="button"
+					        class="btn btn-danger"
+					        @click="confirmRestore()">
+						<?= Text::_('FLEXI_PROTEMPLATE_RESTORE_REPLACE') ?>
+					</button>
+				</div>
+			</div>
+		</div>
+
 	</div><!-- /fcpt-builder -->
 
 	<input type="hidden" name="task" value="">
@@ -528,6 +624,14 @@ function fcptBuilder() {
             endpoint: 'index.php?option=com_flexicontent&task=protemplates.autosaveJson',
             layoutId: <?= (int) ($item->id ?? 0) ?>
         },
+        revisions: {
+            list:       [],
+            loaded:     false,
+            status:     '',
+            listUrl:    'index.php?option=com_flexicontent&task=protemplates.listRevisionsJson',
+            restoreUrl: 'index.php?option=com_flexicontent&task=protemplates.restoreRevisionJson',
+            confirm:    { open: false, id: 0, created: '', opener: null }
+        },
 
         init() {
             const form = document.getElementById('adminForm');
@@ -538,6 +642,89 @@ function fcptBuilder() {
             }
             if (this.layout.sections.length > 0) this.selectSection(0);
             this.$watch('layout', () => this.queueAutosave());
+        },
+
+        // ── Revisions ─────────────────────────────────────────────
+        onRevisionsToggle(event) {
+            if (event?.target?.open && !this.revisions.loaded) {
+                this.loadRevisions();
+            }
+        },
+        loadRevisions() {
+            if (!this.autosave.layoutId) return;
+            const params = new URLSearchParams({
+                id:    String(this.autosave.layoutId),
+                limit: '20'
+            });
+            const token = this.fcptCsrfToken();
+            if (token) params.append(token, '1');
+            fetch(this.revisions.listUrl + '&' + params.toString(), { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(payload => {
+                    const list = (payload && payload.data && Array.isArray(payload.data.revisions))
+                        ? payload.data.revisions : [];
+                    this.revisions.list   = list;
+                    this.revisions.loaded = true;
+                })
+                .catch(() => { this.revisions.status = 'Could not load earlier versions'; });
+        },
+        formatRevisionTime(value) {
+            if (!value) return '';
+            const d = new Date(value.replace(' ', 'T') + 'Z');
+            if (isNaN(d.getTime())) return value;
+            try {
+                return d.toLocaleString();
+            } catch (e) {
+                return value;
+            }
+        },
+        askRestore(rev, opener) {
+            this.revisions.confirm = {
+                open:    true,
+                id:      rev.id,
+                created: rev.created,
+                opener:  opener || null
+            };
+            this.$nextTick(() => { this.$refs.restoreCancelBtn?.focus(); });
+        },
+        cancelRestore() {
+            const opener = this.revisions.confirm.opener;
+            this.revisions.confirm = { open: false, id: 0, created: '', opener: null };
+            this.$nextTick(() => { opener?.focus(); });
+        },
+        confirmRestore() {
+            const revId   = Number(this.revisions.confirm.id || 0);
+            const created = this.revisions.confirm.created;
+            const opener  = this.revisions.confirm.opener;
+            if (!revId || !this.autosave.layoutId) { this.cancelRestore(); return; }
+
+            const form = document.getElementById('adminForm');
+            const data = new FormData();
+            data.append('id',          String(this.autosave.layoutId));
+            data.append('revision_id', String(revId));
+            const token = this.fcptCsrfToken();
+            if (token) data.append(token, '1');
+
+            this.revisions.status = 'Restoring earlier version...';
+            fetch(this.revisions.restoreUrl, { method: 'POST', body: data, credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(payload => {
+                    if (!payload || payload.success === false || !payload.data || !payload.data.layout) {
+                        throw new Error(payload?.message || 'Restore failed');
+                    }
+                    this.layout = fcptNormalizeLayout(payload.data.layout);
+                    this.revisions.status = 'Restored version from ' + this.formatRevisionTime(created)
+                        + '. Press Save to keep this version.';
+                    this.revisions.confirm = { open: false, id: 0, created: '', opener: null };
+                    this.$nextTick(() => { opener?.focus(); });
+                })
+                .catch(err => {
+                    this.revisions.status = 'Restore failed: ' + (err.message || 'unknown error');
+                });
+        },
+        fcptCsrfToken() {
+            const form = document.getElementById('adminForm');
+            return form?.querySelector('input[type="hidden"][value="1"]')?.name || '';
         },
 
         // ── Autosave ──────────────────────────────────────────────
@@ -558,7 +745,17 @@ function fcptBuilder() {
             this.autosave.status = 'Autosaving...';
             fetch(this.autosave.endpoint, { method: 'POST', body: data, credentials: 'same-origin' })
                 .then(r => r.json())
-                .then(payload => { this.autosave.status = payload?.success === false ? 'Autosave failed' : 'Draft saved'; })
+                .then(payload => {
+                    const ok = payload?.success !== false;
+                    this.autosave.status = ok ? 'Draft saved' : 'Autosave failed';
+                    if (ok) {
+                        // Invalidate so the revisions panel reloads on next
+                        // open (or refresh inline if already open).
+                        this.revisions.loaded = false;
+                        const panel = document.querySelector('.fcpt-revisions-panel');
+                        if (panel?.open) this.loadRevisions();
+                    }
+                })
                 .catch(() => { this.autosave.status = 'Autosave failed'; });
         },
 

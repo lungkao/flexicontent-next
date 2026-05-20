@@ -21,6 +21,7 @@ JLoader::register('FlexicontentControllerBaseAdmin', JPATH_ADMINISTRATOR . DS . 
 require_once JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_flexicontent' . DS . 'models' . DS . 'protemplate.php';
 require_once JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_flexicontent' . DS . 'models' . DS . 'protemplates.php';
 require_once JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_flexicontent' . DS . 'helpers' . DS . 'protemplate' . DS . 'LicenseManager.php';
+require_once JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_flexicontent' . DS . 'helpers' . DS . 'protemplate' . DS . 'Revisions.php';
 
 /**
  * Pro Templates Controller — handles list, CRUD, AJAX save / autosave.
@@ -114,6 +115,115 @@ class FlexicontentControllerProtemplates extends FlexicontentControllerBaseAdmin
 			$success ? '' : 'Autosave failed',
 			!$success
 		);
+
+		$app->close();
+	}
+
+	// -------------------------------------------------------------------------
+	// AJAX: List recent revisions for the current layout
+	// -------------------------------------------------------------------------
+
+	/**
+	 * task=protemplates.listRevisionsJson
+	 * GET/POST: id
+	 *
+	 * Returns the most-recent N revisions for the layout, formatted for
+	 * the "restore earlier version" panel. Reads from the new
+	 * `#__flexicontent_pro_layout_revisions` table via the Revisions
+	 * helper (parent_type = 'template').
+	 */
+	public function listRevisionsJson(): void
+	{
+		$app    = Factory::getApplication();
+		$jinput = $app->input;
+
+		Session::checkToken('request') or jexit(Text::_('JINVALID_TOKEN'));
+
+		$id    = (int) $jinput->getInt('id', 0);
+		$limit = (int) $jinput->getInt('limit', 20);
+
+		if ($id <= 0) {
+			echo new JsonResponse(null, 'Invalid layout id', true);
+			$app->close();
+			return;
+		}
+
+		try {
+			$rev  = new FlexicontentProTemplateRevisions(Factory::getDbo());
+			$rows = $rev->listFor($id, FlexicontentProTemplateRevisions::TYPE_TEMPLATE, $limit);
+
+			$payload = array_map(static function ($row) {
+				return [
+					'id'         => (int) $row->id,
+					'note'       => (string) ($row->note ?? ''),
+					'created'    => (string) ($row->created ?? ''),
+					'created_by' => (int) ($row->created_by ?? 0),
+				];
+			}, $rows);
+
+			echo new JsonResponse(['revisions' => $payload]);
+		} catch (\Throwable $e) {
+			echo new JsonResponse(null, $e->getMessage(), true);
+		}
+
+		$app->close();
+	}
+
+	// -------------------------------------------------------------------------
+	// AJAX: Restore a single revision (returns the stored layout JSON)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * task=protemplates.restoreRevisionJson
+	 * POST: id (layout id), revision_id, {token}=1
+	 *
+	 * Loads the requested revision row and returns its layout JSON to
+	 * the browser. The builder then swaps client-side state and the
+	 * user must press Save to persist — this endpoint does NOT mutate
+	 * the live layout, so a mis-click cannot lose work.
+	 */
+	public function restoreRevisionJson(): void
+	{
+		$app    = Factory::getApplication();
+		$jinput = $app->input;
+
+		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+
+		$id    = (int) $jinput->getInt('id', 0);
+		$revId = (int) $jinput->getInt('revision_id', 0);
+
+		if ($id <= 0 || $revId <= 0) {
+			echo new JsonResponse(null, 'Invalid id', true);
+			$app->close();
+			return;
+		}
+
+		try {
+			$rev = new FlexicontentProTemplateRevisions(Factory::getDbo());
+			$row = $rev->get($revId);
+
+			if (!$row || (int) $row->parent_id !== $id
+				|| (string) $row->parent_type !== FlexicontentProTemplateRevisions::TYPE_TEMPLATE) {
+				echo new JsonResponse(null, 'Revision not found', true);
+				$app->close();
+				return;
+			}
+
+			$decoded = json_decode((string) ($row->layout_json ?? ''), true);
+			if (!is_array($decoded)) {
+				echo new JsonResponse(null, 'Revision payload is corrupt', true);
+				$app->close();
+				return;
+			}
+
+			echo new JsonResponse([
+				'revision_id' => (int) $row->id,
+				'created'     => (string) ($row->created ?? ''),
+				'layout'      => $decoded,
+			]);
+		} catch (\Throwable $e) {
+			echo new JsonResponse(null, $e->getMessage(), true);
+		}
 
 		$app->close();
 	}

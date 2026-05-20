@@ -439,7 +439,37 @@ class FlexicontentModelProtemplate extends FCModelAdmin
 			'created_by'    => (int) $user->id,
 		];
 
-		return $db->insertObject('#__flexicontent_pro_revisions', $obj);
+		$ok = $db->insertObject('#__flexicontent_pro_revisions', $obj);
+
+		// Mirror to the new layout_revisions table so the restore panel
+		// (which reads via FlexicontentProTemplateRevisions) surfaces
+		// every autosave + manual save without a separate write path.
+		// Failure here must not break the legacy revision insert above —
+		// wrap in try/catch.
+		try {
+			$decoded = json_decode($layoutJson, true);
+			if (is_array($decoded) && isset($decoded['sections']) && is_array($decoded['sections'])) {
+				$helperPath = JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/protemplate/Revisions.php';
+				if (file_exists($helperPath)) {
+					require_once $helperPath;
+					$rev = new \FlexicontentProTemplateRevisions($db);
+					$rev->record(
+						$layoutId,
+						\FlexicontentProTemplateRevisions::TYPE_TEMPLATE,
+						$decoded,
+						null,
+						$type,
+						(int) $user->id
+					);
+				}
+			}
+		} catch (\Throwable $e) {
+			// Swallow — legacy table write already succeeded; new table
+			// is purely for the restore UI and a stray decode/insert
+			// failure should not fail the autosave roundtrip.
+		}
+
+		return $ok;
 	}
 
 	// -------------------------------------------------------------------------
