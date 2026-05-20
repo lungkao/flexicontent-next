@@ -35,13 +35,15 @@ class PresetLibraryTest extends TestCase
 	public function testItemPresetsCount(): void
 	{
 		$presets = \FlexicontentProTemplatePresetLibrary::getLayoutPresets('item');
-		$this->assertCount(4, $presets, 'Item scope should expose 4 presets');
+		// 4 original + portfolio + longform (added 2026-05-20) = 6.
+		$this->assertCount(6, $presets, 'Item scope should expose 6 presets');
 	}
 
 	public function testCategoryPresetsCount(): void
 	{
 		$presets = \FlexicontentProTemplatePresetLibrary::getLayoutPresets('category');
-		$this->assertCount(4, $presets, 'Category scope should expose 4 presets');
+		// 4 original + masonry + newsfeed (added 2026-05-20) = 6.
+		$this->assertCount(6, $presets, 'Category scope should expose 6 presets');
 	}
 
 	public function testThemePresetsCount(): void

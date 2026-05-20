@@ -194,6 +194,8 @@ class FlexicontentProTemplatePresetLibrary
 			self::itemEditorial(),
 			self::itemMediaRich(),
 			self::itemCompact(),
+			self::itemPortfolio(),
+			self::itemLongform(),
 		];
 	}
 
@@ -363,8 +365,102 @@ class FlexicontentProTemplatePresetLibrary
 		];
 	}
 
+	protected static function itemPortfolio(): array
+	{
+		$k = 'item-portfolio';
+
+		// Showcase layout: hero media + image grid + caption-style body.
+		// Title placed BELOW hero in band section so the image leads.
+		$layout = self::layout([
+			self::section($k, 1, 'Hero media', 'hero', [
+				self::row($k, 1, [
+					self::col($k, 1, 12, [
+						self::article('image_full', 'figure', 'display', 'fcpt-hero-image'),
+					]),
+				]),
+			]),
+			self::section($k, 2, 'Caption band', 'band', [
+				self::row($k, 2, [
+					self::col($k, 2, 8, [
+						self::article('title',    'h1',   'display'),
+						self::article('category', 'span', 'pill'),
+					]),
+					self::col($k, 3, 4, [
+						self::article('created', 'time', 'muted'),
+						self::article('author',  'span', 'muted'),
+					]),
+				], 'media'),
+			]),
+			self::section($k, 3, 'Body grid', 'plain', [
+				self::row($k, 3, [
+					self::col($k, 4, 6, [
+						self::article('image_intro', 'figure', 'card'),
+					]),
+					self::col($k, 5, 6, [
+						self::article('introtext', 'div', 'lead'),
+						self::article('fulltext',  'div', 'default'),
+						self::article('tags',      'div', 'default'),
+					]),
+				], 'media'),
+			]),
+		], 'soft', 'wide', 'normal');
+
+		return [
+			'key'             => $k,
+			'scope'           => 'item',
+			'title_key'       => 'FLEXI_PRESET_ITEM_PORTFOLIO',
+			'description_key' => 'FLEXI_PRESET_ITEM_PORTFOLIO_DESC',
+			'group'           => 'media',
+			'thumbnail'       => self::thumbItemPortfolio(),
+			'layout'          => $layout,
+		];
+	}
+
+	protected static function itemLongform(): array
+	{
+		$k = 'item-longform';
+
+		// Read-first longform: narrow column body with separator-driven
+		// meta strip on top. Sidebar omitted (compact-airy reading mode).
+		$layout = self::layout([
+			self::section($k, 1, 'Header', 'plain', [
+				self::row($k, 1, [
+					self::col($k, 1, 12, [
+						self::article('category', 'span', 'pill'),
+						self::article('title',    'h1',   'display'),
+						self::article('introtext', 'div', 'lead'),
+						self::separator(),
+						self::article('author',  'span', 'muted'),
+						self::article('created', 'time', 'muted'),
+						self::article('hits',    'span', 'stat'),
+					]),
+				]),
+			]),
+			self::section($k, 2, 'Body', 'plain', [
+				self::row($k, 2, [
+					self::col($k, 2, 12, [
+						self::article('image_full', 'figure', 'display'),
+						self::article('fulltext',   'div',    'default'),
+						self::separator(),
+						self::article('tags', 'div', 'default'),
+					]),
+				]),
+			]),
+		], 'editorial', 'narrow', 'airy');
+
+		return [
+			'key'             => $k,
+			'scope'           => 'item',
+			'title_key'       => 'FLEXI_PRESET_ITEM_LONGFORM',
+			'description_key' => 'FLEXI_PRESET_ITEM_LONGFORM_DESC',
+			'group'           => 'editorial',
+			'thumbnail'       => self::thumbItemLongform(),
+			'layout'          => $layout,
+		];
+	}
+
 	/* ---------------------------------------------------------------------
-	 * Category-scope presets (4)
+	 * Category-scope presets (6)
 	 * ------------------------------------------------------------------- */
 
 	protected static function categoryPresets(): array
@@ -374,6 +470,8 @@ class FlexicontentProTemplatePresetLibrary
 			self::categoryFeaturedList(),
 			self::categoryMagazineIndex(),
 			self::categoryCompactList(),
+			self::categoryMasonry(),
+			self::categoryNewsfeed(),
 		];
 	}
 
@@ -505,6 +603,73 @@ class FlexicontentProTemplatePresetLibrary
 			'description_key' => 'FLEXI_PRESET_CAT_COMPACT_DESC',
 			'group'           => 'compact',
 			'thumbnail'       => self::thumbCatCompact(),
+			'layout'          => $layout,
+		];
+	}
+
+	protected static function categoryMasonry(): array
+	{
+		$k = 'cat-masonry';
+
+		// Category context: rendered once per item. Image-first masonry
+		// card — large media on top, title clamped to h2 below.
+		$layout = self::layout([
+			self::section($k, 1, 'Masonry card', 'bento', [
+				self::row($k, 1, [
+					self::col($k, 1, 12, [
+						self::article('image_intro', 'figure', 'display', 'fcpt-card-image'),
+						self::article('category',    'span',   'pill'),
+						self::article('title',       'h2',     'display'),
+						self::article('created',     'time',   'muted'),
+						self::article('introtext',   'div',    'muted'),
+					]),
+				], 'bento'),
+			]),
+		], 'soft', 'wide', 'normal');
+
+		return [
+			'key'             => $k,
+			'scope'           => 'category',
+			'title_key'       => 'FLEXI_PRESET_CAT_MASONRY',
+			'description_key' => 'FLEXI_PRESET_CAT_MASONRY_DESC',
+			'group'           => 'media',
+			'thumbnail'       => self::thumbCatMasonry(),
+			'layout'          => $layout,
+		];
+	}
+
+	protected static function categoryNewsfeed(): array
+	{
+		$k = 'cat-newsfeed';
+
+		// Category context: rendered once per item. Timeline-style row:
+		// date pill leads, title + intro fill the rest. Renderer clamps
+		// title to h2 in category context.
+		$layout = self::layout([
+			self::section($k, 1, 'Newsfeed row', 'plain', [
+				self::row($k, 1, [
+					self::col($k, 1, 3, [
+						self::article('image_intro', 'figure', 'thumbnail', 'fcpt-card-thumb'),
+						self::article('created',     'time',   'pill'),
+						self::article('category',    'span',   'muted'),
+					]),
+					self::col($k, 2, 9, [
+						self::article('title',     'h2',   'default'),
+						self::article('author',    'span', 'muted'),
+						self::article('introtext', 'div',  'default'),
+						self::article('tags',      'div',  'default'),
+					]),
+				], 'compact'),
+			]),
+		], 'clean', 'default', 'normal');
+
+		return [
+			'key'             => $k,
+			'scope'           => 'category',
+			'title_key'       => 'FLEXI_PRESET_CAT_NEWSFEED',
+			'description_key' => 'FLEXI_PRESET_CAT_NEWSFEED_DESC',
+			'group'           => 'editorial',
+			'thumbnail'       => self::thumbCatNewsfeed(),
 			'layout'          => $layout,
 		];
 	}
@@ -1099,6 +1264,78 @@ class FlexicontentProTemplatePresetLibrary
 			. '<rect x="20" y="104" width="200" height="6" rx="1" fill="#475569"/>'
 			. '<rect x="20" y="114" width="200" height="6" rx="1" fill="#475569"/>'
 			. '<rect x="20" y="124" width="200" height="6" rx="1" fill="#475569"/>'
+		);
+	}
+
+	protected static function thumbItemPortfolio(): string
+	{
+		return self::svgFrame(
+			'<rect x="14" y="14" width="212" height="50" rx="3" fill="#64748b"/>'
+			. '<rect x="14" y="70" width="140" height="9" rx="2" fill="#0f172a"/>'
+			. '<rect x="14" y="82" width="40" height="5" rx="2" fill="#2563eb"/>'
+			. '<rect x="180" y="70" width="46" height="5" fill="#475569"/>'
+			. '<rect x="180" y="78" width="46" height="5" fill="#475569"/>'
+			. '<rect x="14" y="94" width="100" height="40" rx="3" fill="#64748b"/>'
+			. '<rect x="122" y="94" width="104" height="6" fill="#475569"/>'
+			. '<rect x="122" y="104" width="104" height="6" fill="#475569"/>'
+			. '<rect x="122" y="114" width="80" height="6" fill="#475569"/>'
+			. '<rect x="122" y="124" width="104" height="6" fill="#475569"/>'
+		);
+	}
+
+	protected static function thumbItemLongform(): string
+	{
+		return self::svgFrame(
+			'<rect x="56" y="14" width="32" height="6" rx="2" fill="#2563eb"/>'
+			. '<rect x="56" y="24" width="128" height="11" rx="2" fill="#0f172a"/>'
+			. '<rect x="56" y="40" width="128" height="4" fill="#475569"/>'
+			. '<rect x="56" y="48" width="116" height="4" fill="#475569"/>'
+			. '<rect x="56" y="60" width="128" height="1" fill="#64748b"/>'
+			. '<rect x="56" y="68" width="40" height="3" fill="#64748b"/>'
+			. '<rect x="100" y="68" width="40" height="3" fill="#64748b"/>'
+			. '<rect x="56" y="80" width="128" height="30" rx="2" fill="#64748b"/>'
+			. '<rect x="56" y="116" width="128" height="4" fill="#475569"/>'
+			. '<rect x="56" y="124" width="120" height="4" fill="#475569"/>'
+			. '<rect x="56" y="132" width="128" height="4" fill="#475569"/>'
+		);
+	}
+
+	protected static function thumbCatMasonry(): string
+	{
+		return self::svgFrame(
+			'<rect x="14" y="14" width="70" height="56" rx="3" fill="#64748b"/>'
+			. '<rect x="14" y="74" width="40" height="4" rx="1" fill="#2563eb"/>'
+			. '<rect x="14" y="82" width="60" height="6" fill="#0f172a"/>'
+			. '<rect x="14" y="92" width="60" height="3" fill="#475569"/>'
+			. '<rect x="92" y="14" width="70" height="38" rx="3" fill="#64748b"/>'
+			. '<rect x="92" y="56" width="60" height="6" fill="#0f172a"/>'
+			. '<rect x="92" y="66" width="60" height="3" fill="#475569"/>'
+			. '<rect x="92" y="74" width="60" height="3" fill="#475569"/>'
+			. '<rect x="170" y="14" width="56" height="70" rx="3" fill="#64748b"/>'
+			. '<rect x="170" y="88" width="56" height="6" fill="#0f172a"/>'
+			. '<rect x="14" y="105" width="70" height="30" rx="3" fill="#64748b"/>'
+			. '<rect x="92" y="92" width="70" height="42" rx="3" fill="#64748b"/>'
+			. '<rect x="170" y="100" width="56" height="34" rx="3" fill="#64748b"/>'
+		);
+	}
+
+	protected static function thumbCatNewsfeed(): string
+	{
+		return self::svgFrame(
+			'<rect x="14" y="18" width="30" height="14" rx="7" fill="#2563eb"/>'
+			. '<rect x="52" y="18" width="120" height="7" rx="2" fill="#0f172a"/>'
+			. '<rect x="52" y="29" width="160" height="3" fill="#475569"/>'
+			. '<rect x="52" y="35" width="140" height="3" fill="#475569"/>'
+			. '<rect x="14" y="48" width="200" height="1" fill="#64748b"/>'
+			. '<rect x="14" y="58" width="30" height="14" rx="7" fill="#2563eb"/>'
+			. '<rect x="52" y="58" width="120" height="7" rx="2" fill="#0f172a"/>'
+			. '<rect x="52" y="69" width="160" height="3" fill="#475569"/>'
+			. '<rect x="52" y="75" width="120" height="3" fill="#475569"/>'
+			. '<rect x="14" y="88" width="200" height="1" fill="#64748b"/>'
+			. '<rect x="14" y="98" width="30" height="14" rx="7" fill="#2563eb"/>'
+			. '<rect x="52" y="98" width="120" height="7" rx="2" fill="#0f172a"/>'
+			. '<rect x="52" y="109" width="160" height="3" fill="#475569"/>'
+			. '<rect x="14" y="124" width="200" height="1" fill="#64748b"/>'
 		);
 	}
 
